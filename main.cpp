@@ -12,6 +12,7 @@
 *
 * Popis projektu:
 *  TODO
+*
 */
 
 // Nacitanie standardnych hlavickovych suborov

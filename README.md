@@ -16,28 +16,28 @@
   * pridať do "**Additional Dependencies**" hodnoty:
 
         ```
-$(ALDEBARAN_SDK)\lib\alvision_d.lib
-$(ALDEBARAN_SDK)\lib\cv200d.lib
-$(ALDEBARAN_SDK)\lib\cvaux200d.lib
-$(ALDEBARAN_SDK)\lib\cxcore200d.lib
-$(ALDEBARAN_SDK)\lib\highgui200d.lib
-$(ALDEBARAN_SDK)\lib\ml200.lib
-$(ALDEBARAN_SDK)\lib\alextractor_d.lib
-$(ALDEBARAN_SDK)\lib\alcommon_d.lib
-$(ALDEBARAN_SDK)\lib\alsoap_d.lib
-$(ALDEBARAN_SDK)\lib\alvalue_d.lib
-$(ALDEBARAN_SDK)\lib\tinyxml_d.lib
-$(ALDEBARAN_SDK)\lib\rttools_d.lib
-$(ALDEBARAN_SDK)\lib\althread_d.lib
-$(ALDEBARAN_SDK)\lib\alerror_d.lib
-$(ALDEBARAN_SDK)\lib\pthreadVCE2.lib
-$(ALDEBARAN_SDK)\lib\libboost_signals-vc100-mt-gd-1_44.lib
-$(ALDEBARAN_SDK)\lib\libboost_program_options-vc100-mt-gd-1_44.lib
-$(ALDEBARAN_SDK)\lib\allogremote_d.lib
-$(ALDEBARAN_SDK)\lib\qi_d.lib
-$(ALDEBARAN_SDK)\lib\libboost_filesystem-vc100-mt-gd-1_44.lib
-$(ALDEBARAN_SDK)\lib\libboost_system-vc100-mt-gd-1_44.lib
-$(ALDEBARAN_SDK)\lib\libboost_thread-vc100-mt-gd-1_44.lib
-$(ALDEBARAN_SDK)\lib\libboost_date_time-vc100-mt-gd-1_44.lib
-$(ALDEBARAN_SDK)\lib\zmq_d.lib
+    $(ALDEBARAN_SDK)\lib\alvision_d.lib
+    $(ALDEBARAN_SDK)\lib\cv200d.lib
+    $(ALDEBARAN_SDK)\lib\cvaux200d.lib
+    $(ALDEBARAN_SDK)\lib\cxcore200d.lib
+    $(ALDEBARAN_SDK)\lib\highgui200d.lib
+    $(ALDEBARAN_SDK)\lib\ml200.lib
+    $(ALDEBARAN_SDK)\lib\alextractor_d.lib
+    $(ALDEBARAN_SDK)\lib\alcommon_d.lib
+    $(ALDEBARAN_SDK)\lib\alsoap_d.lib
+    $(ALDEBARAN_SDK)\lib\alvalue_d.lib
+    $(ALDEBARAN_SDK)\lib\tinyxml_d.lib
+    $(ALDEBARAN_SDK)\lib\rttools_d.lib
+    $(ALDEBARAN_SDK)\lib\althread_d.lib
+    $(ALDEBARAN_SDK)\lib\alerror_d.lib
+    $(ALDEBARAN_SDK)\lib\pthreadVCE2.lib
+    $(ALDEBARAN_SDK)\lib\libboost_signals-vc100-mt-gd-1_44.lib
+    $(ALDEBARAN_SDK)\lib\libboost_program_options-vc100-mt-gd-1_44.lib
+    $(ALDEBARAN_SDK)\lib\allogremote_d.lib
+    $(ALDEBARAN_SDK)\lib\qi_d.lib
+    $(ALDEBARAN_SDK)\lib\libboost_filesystem-vc100-mt-gd-1_44.lib
+    $(ALDEBARAN_SDK)\lib\libboost_system-vc100-mt-gd-1_44.lib
+    $(ALDEBARAN_SDK)\lib\libboost_thread-vc100-mt-gd-1_44.lib
+    $(ALDEBARAN_SDK)\lib\libboost_date_time-vc100-mt-gd-1_44.lib
+    $(ALDEBARAN_SDK)\lib\zmq_d.lib
         ```

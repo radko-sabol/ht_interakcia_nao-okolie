@@ -31,7 +31,7 @@ include("qibuild.cmake")
 
 # Create a executable named ht_interakcia_nao-okolie
 # with the source file: main.cpp
-qi_create_bin(ht_interakcia_nao-okolie "main.cpp")
+qi_create_bin(ht_interakcia_nao-okolie "main.cpp" "detect_circle.cpp" "detect_square.cpp" "detect_haar_cascade_classifier.cpp")
 
 # Add a simple test:
 enable_testing()

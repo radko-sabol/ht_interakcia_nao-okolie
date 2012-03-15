@@ -31,16 +31,23 @@
 #include <opencv/highgui.h>
 
 // Ostatne hlavickove subory
-#include "detect_circle.hpp"
-#include "detect_square.hpp"
-#include "detect_haar_cascade_classifier.hpp"
+#include "object_detection.hpp"
 
 // Definica flagov
-const bool USE_HAAR_CASCADE_DETECTION(false);
-const bool USE_CIRCLE_DETECTION(true);
-const bool USE_SQUARE_DETECTION(false);
+bool USE_HAAR_CASCADE_DETECTION(true);
+bool USE_CIRCLE_DETECTION(true);
+bool USE_SQUARE_DETECTION(true);
+
+bool DEBUG_MODE(false);
+
+std::string haarCascadeFileName = "..\\..\\..\\files\\haar_cascades\\ball.xml";
 
 
+
+void debugModeToggle()
+{
+  DEBUG_MODE = ! DEBUG_MODE;
+}
 
 int objectDetection(const std::string& robotIP, const int& robotPORT)
 {
@@ -48,10 +55,11 @@ int objectDetection(const std::string& robotIP, const int& robotPORT)
             imgHeight = 240,
             imgDepth = 8,
             imgChannels = 3;
+  ObjectDetection objectDetection;
   
   /** Ak chces pouzit obraz z kamery robota *
   AL::ALVideoDeviceProxy camProxy(robotIP, robotPORT); // Vytvorenie proxy na ALVideoDevice robota
-  camProxy.setParam(AL::kCameraSelectID, 0); // prepnutie aktivnej kamery; 0 = horna, 1 = dolna
+  camProxy.setParam(AL::kCameraSelectID, 1); // prepnutie aktivnej kamery; 0 = horna, 1 = dolna
   const std::string clientName = camProxy.subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30); // nastavenie parametrov odoberaneho obrazu
   AL::ALValue captureRobotCam = 0; // inicializacia premennej, v ktorej sa uklada stream z robota
   */
@@ -59,88 +67,138 @@ int objectDetection(const std::string& robotIP, const int& robotPORT)
   /** Ak chces pouzit obraz z kamery v PC */
   CvCapture* captureCam = 0; // inicializacia premennej, v ktorej sa uklada stream z kamery (PC,...)
   captureCam = cvCaptureFromCAM(0);
-  if (! captureCam) { std::cout << "Chyba pri inicializacii kamery..." << std::endl; return -1; }
-
-  /** Snaha o preberanie obrazu cez C++ (nedoriesena konverzia z cv::Mat do IplImage, tak to zatial bezi cez C-cko)
-  cv::VideoCapture captureCam2 = cv::VideoCapture::VideoCapture();
-  captureCam2.open(0);
+  if (! captureCam) { std::cerr << "Chyba pri inicializacii kamery..." << std::endl; return -1; }
+  
+  /** Snaha o preberanie obrazu cez C++ (nedoriesena konverzia z cv::Mat do IplImage, tak to zatial bezi cez C-cko) */
+  /*
+  cv::VideoCapture captureCam = cv::VideoCapture::VideoCapture();
+  captureCam.open(0);
   cv::Mat imageMat;
-  IplImage* imageIplImage = cvCreateImage(cvSize(imgWidth, imgHeight), imgDepth, imgChannels);
+  //IplImage* imageIplImage = cvCreateImage(cvSize(imgWidth, imgHeight), imgDepth, imgChannels);
   */
+  
   
 
   /** Inicializacia premennej s obrazom a vytvorenie okna s hlavnym neupravovanym obrazom */
   IplImage* imageMain = cvCreateImage(cvSize(imgWidth, imgHeight), imgDepth, imgChannels);
-  cvNamedWindow("Video main", CV_WINDOW_AUTOSIZE);
+  cvNamedWindow("Video raw", CV_WINDOW_AUTOSIZE);
   
 
   
   if (USE_HAAR_CASCADE_DETECTION)
   {
     /** Vytvorenie okna s Haar cascade detekciou objektov */
-    cvNamedWindow("Video haar", CV_WINDOW_AUTOSIZE);
+    //cvNamedWindow("Video haar", CV_WINDOW_AUTOSIZE);
   }
 
   /** Inicializacia premennej s obrazom a vytvorenie okna s Haar cascade detekciou objektov */
   //IplImage* imageHaar = cvCreateImage(cvSize(imgWidth, imgHeight), imgDepth, imgChannels);
 
   /** Haar cascade klasifikator */
-  CvHaarClassifierCascade* cascade = loadObjectDetector("..\\..\\..\\files\\haar_cascades\\ball.xml");
-  if (! cascade) { std::cout << "Chyba pri nacitavani kaskady" << std::endl; return -1; }
-
-
-
-  /** Detekcia kruhovych predmetov */
-  //IplImage* imageHSV = cvCreateImage(cvSize(imgWidth, imgHeight), imgDepth, imgChannels);
-  if (USE_CIRCLE_DETECTION)
-  {
-    //cvNamedWindow("Video ball tresholded #1", CV_WINDOW_AUTOSIZE);
-    //cvNamedWindow("Video ball tresholded #2", CV_WINDOW_AUTOSIZE);
-  }
+  //CvHaarClassifierCascade* cascade = loadObjectDetector("..\\..\\..\\files\\haar_cascades\\ball.xml");
+  //if (! cascade) { std::cout << "Chyba pri nacitavani kaskady" << std::endl; return -1; }
+  cv::CascadeClassifier haarCascade;
+  if (! haarCascade.load(haarCascadeFileName)) { std::cerr << "Chyba pri nacitani haar kaskady" << std::endl; return -1; }
 
 
   /** Detekcia obdlznikovych predmetov */
-  std::vector<std::vector<cv::Point>> squares;
+  //std::vector<std::vector<cv::Point>> squares;
   //CvMat *imageMat = cvCreateMat(imgHeight, imgWidth, CV_8UC3);
 
 
   /** Cyklus bezi pokial pouzivatel nestlaci klavesu Esc */
   while ((char) cvWaitKey(30) != 27)
   {
-    /** Snaha o konverziu z cv::Mat do IplImage
-    captureCam2 >> frame; // prijatie frame-u z kamery
-    IplImage src = frame;
-    cvCopy(&src, frame);
-    cv::imshow("test", frame);
-    cvShowImage("asd", src);
-    */
+    objectDetection.objects.clear();
+    objectDetection.objects.resize(3);
+
+    /** C++ (snaha o konverziu z cv::Mat do IplImage) */
+    //captureCam >> imageMat; // prijatie frame-u z kamery
 
     //captureRobotCam = camProxy.getImageRemote(clientName); cvSetData(imageMain, (char*)captureRobotCam[6].GetBinary(), 960); // prijatie obrazku z kamery robota a nasledne zapisanie do OpenCV datoveho typu IplImage
     imageMain = cvQueryFrame(captureCam); // prijatie obrazku z kamery (PC,...)
-    cvShowImage("Video main", imageMain); // vykreslenie neupravovaneho vystupu z kamery
-    
+    //cvShowImage("Video main", imageMain); // vykreslenie neupravovaneho vystupu z kamery
     cv::Mat imageMat(imageMain);
+    cv::imshow("Video raw", imageMat);
+    
     
     if (USE_HAAR_CASCADE_DETECTION)
     {
-      haarDetectAndDrawObjects(imageMain, cascade, 0);
+      //haarDetectAndDrawObjectsC(imageMain, cascade, 0, objects);
+      objectDetection.haarDetectObjects(imageMat.clone(), haarCascade, objectDetection.objects);
     }
     
     if (USE_CIRCLE_DETECTION)
     {
+      objectDetection.circleDetectObjects(imageMat.clone(), objectDetection.objects);
       //circleDetectAndDrawObjectsC(imageMain);
-      circleDetectAndDrawObjects(imageMat.clone());
+      //circleDetectAndDrawObjects(imageMat.clone(), objects);
     }
 
     if (USE_SQUARE_DETECTION)
     {
-      squareDetectObjects(imageMat.clone(), squares);
-      squareDrawObjects(imageMat, squares);
+      objectDetection.squareDetectObjects(imageMat.clone(), objectDetection.objects);
+      //squareDrawObjects(imageMat, squares);
     }
     
-    
+    for (size_t i = 0; i < objectDetection.objects.size(); i++) // ID identifikatora
+    {
+      for (size_t j = 0; j < objectDetection.objects[i].size(); j++) // najdene objekty
+      {
+        if (i == 0) // detegovany haar objekt
+        {
+          cv::rectangle(imageMat, cv::Point(objectDetection.objects[i][j][0][0], objectDetection.objects[i][j][0][1]), cv::Point(objectDetection.objects[i][j][0][0] + objectDetection.objects[i][j][0][2], objectDetection.objects[i][j][0][1] + objectDetection.objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
+        }
 
+        if (i == 1) // detegovany kruh
+        {
+          cv::Point circleCenter(cvRound(objectDetection.objects[i][j][0][0]), cvRound(objectDetection.objects[i][j][0][1]));
+          int circleRadius = cvRound(objectDetection.objects[i][j][0][2]);
+
+          cv::circle(imageMat, circleCenter, circleRadius, cv::Scalar(0, 0, 255), 3, 8, 0);
+        }
+
+        if (i == 2) // detegovany stvorec
+        {
+          const cv::Scalar p1 = objectDetection.objects[i][j][0];
+          const cv::Scalar p2 = objectDetection.objects[i][j][1];
+          const cv::Scalar p3 = objectDetection.objects[i][j][2];
+          const cv::Scalar p4 = objectDetection.objects[i][j][3];
+
+          /*
+          std::cout << "P1 - X: " << p1[0] << " ;Y: " << p1[1] << " ;?: " << p1[2] << " ;?: " << p1[3] << std::endl;
+          std::cout << "P2 - X: " << p2[0] << " ;Y: " << p2[1] << " ;?: " << p2[2] << " ;?: " << p2[3] << std::endl;
+          std::cout << "P3 - X: " << p3[0] << " ;Y: " << p3[1] << " ;?: " << p3[2] << " ;?: " << p3[3] << std::endl;
+          std::cout << "P4 - X: " << p4[0] << " ;Y: " << p4[1] << " ;?: " << p4[2] << " ;?: " << p4[3] << std::endl;
+          */
+
+          /*
+          // Vypocet stredoveho bodu
+          int x = 0,
+              y = 0;
+
+          x = ((squares[i][0].x + squares[i][2].x)/2 + (squares[i][1].x + squares[i][3].x)/2) / 2;
+          y = ((squares[i][0].y + squares[i][2].y)/2 + (squares[i][1].y + squares[i][3].y)/2) / 2;
+
+          cv::circle(image, cv::Point(squares[i][0].x, squares[i][0].y), 2, cv::Scalar(0, 0, 255), 1);
+          //cv::circle(image, cv::Point(squares[i][1].x, squares[i][1].y), 2, cv::Scalar(255, 0, 0), 1);
+          cv::circle(image, cv::Point(squares[i][2].x, squares[i][2].y), 2, cv::Scalar(255, 0, 255), 1);
+          cv::circle(image, cv::Point(x, y), 2, cv::Scalar(255, 0, 0), 1);
+          */
+
+          cv::line(imageMat, cv::Point(p1[0], p1[1]), cv::Point(p2[0], p2[1]), cv::Scalar(255, 0, 0), 2);
+          cv::line(imageMat, cv::Point(p2[0], p2[1]), cv::Point(p3[0], p3[1]), cv::Scalar(255, 0, 0), 2);
+          cv::line(imageMat, cv::Point(p3[0], p3[1]), cv::Point(p4[0], p4[1]), cv::Scalar(255, 0, 0), 2);
+          cv::line(imageMat, cv::Point(p4[0], p4[1]), cv::Point(p1[0], p1[1]), cv::Scalar(255, 0, 0), 2);
+        }
+      }
+    }
+
+    cv::imshow("Video detected", imageMat);
   }
+
+  /** Cleanup.*/
+  //camProxy.unsubscribe(clientName);
 
   return 0;
 }

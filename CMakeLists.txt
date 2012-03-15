@@ -31,7 +31,7 @@ include("qibuild.cmake")
 
 # Create a executable named ht_interakcia_nao-okolie
 # with the source file: main.cpp
-qi_create_bin(ht_interakcia_nao-okolie "main.cpp" "object_detection.cpp")
+qi_create_bin(ht_interakcia_nao-okolie "main.cpp" "object_detection.cpp" "motion.cpp")
 
 # Add a simple test:
 enable_testing()

@@ -81,7 +81,7 @@ void ObjectDetection::circleDetectObjects(cv::Mat& img, std::vector<std::vector<
   }
 
   //cv::imshow( "circless", img );
-  cv::imshow( "circles", gray );
+  //cv::imshow( "circles", gray );
 }
 
 void ObjectDetection::circleDetectAndDrawObjectsC(const IplImage* imageMain) // nefunguje podla mojich predstav

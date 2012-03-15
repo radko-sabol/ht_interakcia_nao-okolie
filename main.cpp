@@ -24,7 +24,12 @@
 #include <alproxies/alvideodeviceproxy.h>
 #include <alvision/alimage.h>
 #include <alvision/alvisiondefinitions.h>
+
+#include <alproxies/almotionproxy.h>
+#include <alproxies/albehaviormanagerproxy.h>
+
 #include <alerror/alerror.h>
+
 
 // OpenCV hlavickove subory (v Aldebaran Nao SDK)
 #include <opencv/cv.h>
@@ -32,6 +37,7 @@
 
 // Ostatne hlavickove subory
 #include "object_detection.hpp"
+#include "motion.hpp"
 
 // Definica flagov
 bool USE_HAAR_CASCADE_DETECTION(true);
@@ -56,18 +62,27 @@ int objectDetection(const std::string& robotIP, const int& robotPORT)
             imgDepth = 8,
             imgChannels = 3;
   ObjectDetection objectDetection;
+  Motion motion;
   
   /** Ak chces pouzit obraz z kamery robota *
   AL::ALVideoDeviceProxy camProxy(robotIP, robotPORT); // Vytvorenie proxy na ALVideoDevice robota
   camProxy.setParam(AL::kCameraSelectID, 1); // prepnutie aktivnej kamery; 0 = horna, 1 = dolna
   const std::string clientName = camProxy.subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30); // nastavenie parametrov odoberaneho obrazu
   AL::ALValue captureRobotCam = 0; // inicializacia premennej, v ktorej sa uklada stream z robota
+
+  AL::ALMotionProxy mp(robotIP, robotPORT);
+  mp.setStiffnesses("Body",1);
+  AL::ALBehaviorManagerProxy behavior(robotIP, robotPORT);
+  behavior.runBehavior("standUp");
+  behavior.runBehavior("Init");
   */
 
   /** Ak chces pouzit obraz z kamery v PC */
   CvCapture* captureCam = 0; // inicializacia premennej, v ktorej sa uklada stream z kamery (PC,...)
   captureCam = cvCaptureFromCAM(0);
   if (! captureCam) { std::cerr << "Chyba pri inicializacii kamery..." << std::endl; return -1; }
+  
+
   
   /** Snaha o preberanie obrazu cez C++ (nedoriesena konverzia z cv::Mat do IplImage, tak to zatial bezi cez C-cko) */
   /*
@@ -85,12 +100,6 @@ int objectDetection(const std::string& robotIP, const int& robotPORT)
   
 
   
-  if (USE_HAAR_CASCADE_DETECTION)
-  {
-    /** Vytvorenie okna s Haar cascade detekciou objektov */
-    //cvNamedWindow("Video haar", CV_WINDOW_AUTOSIZE);
-  }
-
   /** Inicializacia premennej s obrazom a vytvorenie okna s Haar cascade detekciou objektov */
   //IplImage* imageHaar = cvCreateImage(cvSize(imgWidth, imgHeight), imgDepth, imgChannels);
 
@@ -148,6 +157,17 @@ int objectDetection(const std::string& robotIP, const int& robotPORT)
         if (i == 0) // detegovany haar objekt
         {
           cv::rectangle(imageMat, cv::Point(objectDetection.objects[i][j][0][0], objectDetection.objects[i][j][0][1]), cv::Point(objectDetection.objects[i][j][0][0] + objectDetection.objects[i][j][0][2], objectDetection.objects[i][j][0][1] + objectDetection.objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
+          cv::Point center(objectDetection.objects[i][j][0][0] + objectDetection.objects[i][j][0][2]*0.5, objectDetection.objects[i][j][0][1] + objectDetection.objects[i][j][0][3]*0.5);
+          cv::circle(imageMat, center, 1, cv::Scalar(255, 0, 0), 3, 8, 0);
+          std::cout << "X: " << center.x << "Y: " << center.y << std::endl;
+          
+          /*
+	        if ((center.x > 0) && (center.y > 0))
+          {
+            motion.center(center.x, center.y, mp);
+          }
+          */
+          
         }
 
         if (i == 1) // detegovany kruh
@@ -197,9 +217,11 @@ int objectDetection(const std::string& robotIP, const int& robotPORT)
     cv::imshow("Video detected", imageMat);
   }
 
-  /** Cleanup.*/
-  //camProxy.unsubscribe(clientName);
-
+  /** Cleanup *
+  behavior.runBehavior("sitDown");
+  mp.setStiffnesses("Body", 0);
+  camProxy.unsubscribe(clientName);
+  */
   return 0;
 }
 

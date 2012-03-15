@@ -33,4 +33,7 @@ class ObjectDetection
     CvHaarClassifierCascade* loadObjectDetector(const char* cascadePath);
     void haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifierCascade* cascade, int do_pyramids, std::vector<std::vector<std::vector<cv::Scalar>>>& objects);
     void haarDetectObjects(cv::Mat image, cv::CascadeClassifier cascade, std::vector<std::vector<std::vector<cv::Scalar>>>& objects);
+
+    // vykreslenie najdenych objektov
+    void ObjectDetection::drawDetectedObjects(cv::Mat image, std::vector<std::vector<std::vector<cv::Scalar>>>& objects);
 };

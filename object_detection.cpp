@@ -404,3 +404,74 @@ void ObjectDetection::haarDetectObjects(cv::Mat image, cv::CascadeClassifier cas
     objects[0][objects[0].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
   }
 }
+
+
+void ObjectDetection::drawDetectedObjects(cv::Mat imageMat, std::vector<std::vector<std::vector<cv::Scalar>>>& objects)
+{
+  for (size_t i = 0; i < objects.size(); i++) // ID identifikatora
+  {
+    for (size_t j = 0; j < objects[i].size(); j++) // najdene objekty
+    {
+      if (i == 0) // detegovany haar objekt
+      {
+        cv::rectangle(imageMat, cv::Point(objects[i][j][0][0], objects[i][j][0][1]), cv::Point(objects[i][j][0][0] + objects[i][j][0][2], objects[i][j][0][1] + objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
+        cv::Point center(objects[i][j][0][0] + objects[i][j][0][2]*0.5, objects[i][j][0][1] + objects[i][j][0][3]*0.5);
+        cv::circle(imageMat, center, 1, cv::Scalar(255, 0, 0), 3, 8, 0);
+        std::cout << "X: " << center.x << " ; Y: " << center.y << std::endl;
+          
+        /*
+	      if ((center.x > 0) && (center.y > 0))
+        {
+          motion.center(center.x, center.y, mp); // TODO: potrebne urobit mp ako globalnu premennu A presunut volanie tejto funkcie na lepsie miesto
+        }
+        */
+          
+      }
+
+      if (i == 1) // detegovany kruh
+      {
+        cv::Point circleCenter(cvRound(objects[i][j][0][0]), cvRound(objects[i][j][0][1]));
+        int circleRadius = cvRound(objects[i][j][0][2]);
+
+        cv::circle(imageMat, circleCenter, circleRadius, cv::Scalar(0, 0, 255), 3, 8, 0);
+      }
+
+      if (i == 2) // detegovany stvorec
+      {
+        const cv::Scalar p1 = objects[i][j][0];
+        const cv::Scalar p2 = objects[i][j][1];
+        const cv::Scalar p3 = objects[i][j][2];
+        const cv::Scalar p4 = objects[i][j][3];
+
+        /*
+        std::cout << "P1 - X: " << p1[0] << " ;Y: " << p1[1] << " ;?: " << p1[2] << " ;?: " << p1[3] << std::endl;
+        std::cout << "P2 - X: " << p2[0] << " ;Y: " << p2[1] << " ;?: " << p2[2] << " ;?: " << p2[3] << std::endl;
+        std::cout << "P3 - X: " << p3[0] << " ;Y: " << p3[1] << " ;?: " << p3[2] << " ;?: " << p3[3] << std::endl;
+        std::cout << "P4 - X: " << p4[0] << " ;Y: " << p4[1] << " ;?: " << p4[2] << " ;?: " << p4[3] << std::endl;
+        */
+
+        /*
+        // Vypocet stredoveho bodu
+        int x = 0,
+            y = 0;
+
+        x = ((squares[i][0].x + squares[i][2].x)/2 + (squares[i][1].x + squares[i][3].x)/2) / 2;
+        y = ((squares[i][0].y + squares[i][2].y)/2 + (squares[i][1].y + squares[i][3].y)/2) / 2;
+
+        cv::circle(image, cv::Point(squares[i][0].x, squares[i][0].y), 2, cv::Scalar(0, 0, 255), 1);
+        //cv::circle(image, cv::Point(squares[i][1].x, squares[i][1].y), 2, cv::Scalar(255, 0, 0), 1);
+        cv::circle(image, cv::Point(squares[i][2].x, squares[i][2].y), 2, cv::Scalar(255, 0, 255), 1);
+        cv::circle(image, cv::Point(x, y), 2, cv::Scalar(255, 0, 0), 1);
+        */
+
+        cv::line(imageMat, cv::Point(p1[0], p1[1]), cv::Point(p2[0], p2[1]), cv::Scalar(255, 0, 0), 2);
+        cv::line(imageMat, cv::Point(p2[0], p2[1]), cv::Point(p3[0], p3[1]), cv::Scalar(255, 0, 0), 2);
+        cv::line(imageMat, cv::Point(p3[0], p3[1]), cv::Point(p4[0], p4[1]), cv::Scalar(255, 0, 0), 2);
+        cv::line(imageMat, cv::Point(p4[0], p4[1]), cv::Point(p1[0], p1[1]), cv::Scalar(255, 0, 0), 2);
+      }
+    }
+  }
+
+  // zobrazenie obrazu s detegovanymi objektmi
+  cv::imshow("Video detected", imageMat);
+}

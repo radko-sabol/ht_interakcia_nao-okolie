@@ -13,11 +13,13 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     connecttonao.cpp \
-    label.cpp
+    label.cpp \
+    objectdetection.cpp
 
 HEADERS  += mainwindow.h \
     connecttonao.h \
-    label.h
+    label.h \
+    objectdetection.h
 
 FORMS    += mainwindow.ui \
     connecttonao.ui

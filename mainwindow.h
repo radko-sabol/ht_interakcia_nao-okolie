@@ -25,6 +25,9 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
+#include "label.h"
+#include "objectdetection.h"
+
 namespace Ui
 {
 class MainWindow;
@@ -51,9 +54,10 @@ private slots:
     void getItem(int row);
     void getChoosenObjectIndex(int row);
 
+    void behaviorProcessing(QListWidgetItem *item);
+
 private:
      void getImage();
-     void detectTemplate();
      void drawTemplate();
 
      void getXML();
@@ -83,7 +87,6 @@ private:
 
     CvHaarClassifierCascade* cascade;
     cv::Mat image;
-    cv::CascadeClassifier face_cascade;
     CvSeq* object;
     CvMemStorage* storage;
 
@@ -91,17 +94,19 @@ private:
     int choosenObjectIndex;
 
     AL::ALTextToSpeechProxy *textToSpeech;
-    AL::ALVideoDeviceProxy *camProxy; // Vytvorenie proxy na ALVideoDevice robota
-    AL::ALValue captureRobotCam; // inicializacia premennej, v ktorej sa uklada stream z robota
+    AL::ALVideoDeviceProxy *camProxy;
+    AL::ALValue captureRobotCam;
     AL::ALMotionProxy *motionProxy;
     AL::ALBehaviorManagerProxy *behaviorProxy;
+
+    std::vector<std::string> behaviourNames;
 
     float speed, theta;
 
     bool templateStatus;
     bool brokerStatus;
 
-
+    ObjectDetection objectDetection;
 };
 
 #endif // MAINWINDOW_H

@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     ui->listWidget_2->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->listWidget_2->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->listWidget_2->setSortingEnabled(true);
 
     templateStatus = false;
     brokerStatus = false;
@@ -57,13 +58,18 @@ void MainWindow::getIpAndPort(QString& IP, QString& port)
 
     ui->label->getMotionProxy(IP, port);
 
-    motionProxy->setStiffnesses("Body",1);
+   // motionProxy->setStiffnesses("Body",1);
 
-    behaviorProxy->runBehavior("standUp");
-    behaviorProxy->runBehavior("Init");
+   // behaviorProxy->runBehavior("standUp");
+   // behaviorProxy->runBehavior("Init");
 
-    camProxy->setParam(AL::kCameraSelectID, 1); // prepnutie aktivnej kamery; 0 = horna, 1 = dolna
-    clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30); // nastavenie parametrov odoberaneho obrazu
+    camProxy->setParam(AL::kCameraSelectID, 1);
+    clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
+
+    behaviourNames = behaviorProxy->getInstalledBehaviors();
+
+    for(int i = 0; i < behaviourNames.size(); i++)
+        ui->listWidget_3->addItem(QString(behaviourNames[i].c_str()));
 
     imageMain = cvCreateImage(cvSize(320, 240), 8, 3);
 
@@ -71,29 +77,22 @@ void MainWindow::getIpAndPort(QString& IP, QString& port)
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
     connect(ui->listWidget_2,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
     //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
+    connect(ui->listWidget_3, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
+
     m_timer->start(33);
 }
 
 void MainWindow::imageProcessing()
 {
-    std::vector<std::string> str;
-    str.clear();
-    str = behaviorProxy->getInstalledBehaviors();
-
-    //qDebug() << "Behavior" << str.size();
-
-    for(int i = 0; i < str.size(); i++)
-        ui->listWidget_2->addItem(QString(str[i].c_str()));
 
     getImage();
 
     if(templateStatus == true)
     {
-        detectTemplate();
+        object = objectDetection.detectTemplate(imageMain);
         drawTemplate();
     }
 
-    str.clear();
 }
 
 void MainWindow::getImage()
@@ -104,32 +103,19 @@ void MainWindow::getImage()
     cvCvtColor(imageMain,imageMain,CV_BGR2RGB);
 }
 
-void MainWindow::detectTemplate()
-{
-
-    IplImage* small_image = imageMain;
-    storage = cvCreateMemStorage(0);
-
-    object = cvHaarDetectObjects( small_image, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING );
-
-    totalObjects = object->total;
-}
-
 void MainWindow::drawTemplate()
 {
-    int scale = 1;
-
 
     ui->listWidget_2->clear();
 
-    for(int i = 0; i < totalObjects; i++ )
+    for(int i = 0; i < object->total; i++)
     {
-       CvRect face_rect = *(CvRect*)cvGetSeqElem( object, i );
-       cvRectangle(imageMain, cvPoint(face_rect.x * scale, face_rect.y * scale), cvPoint((face_rect.x + face_rect.width) * scale, (face_rect.y + face_rect.height) * scale), CV_RGB(255,0,0), 3);
-       ui->listWidget_2->addItem(QString("Objekt %0 na pozicii %1 %2").arg(i + 1).arg(face_rect.x).arg(face_rect.y));
+        CvRect face_rect = *(CvRect*)cvGetSeqElem( object, i );
+        ui->listWidget_2->addItem(QString("%1 %2").arg(face_rect.x).arg(face_rect.y));
+        ui->listWidget_2->sortItems(Qt::AscendingOrder);
     }
 
-    if(choosenObjectIndex >= 0 && totalObjects > 0 )
+    if(choosenObjectIndex >= 0 && object->total > 0 )
     {
         CvRect face_rect = *(CvRect*)cvGetSeqElem( object, choosenObjectIndex );
 
@@ -137,13 +123,14 @@ void MainWindow::drawTemplate()
         headCenter(face_rect.x, face_rect.y);
     }
 
+    objectDetection.drawTemplate(imageMain);
+
     image = cv::Mat(imageMain);
 
     QImage img = QImage((const unsigned char*)(image.data), image.cols,image.rows, QImage::Format_RGB888);
     ui->label->setPixmap(QPixmap::fromImage(img));
     ui->label->resize(ui->label->pixmap()->size());
 
-    cvReleaseMemStorage(&storage);
 }
 
 void MainWindow::templateProcessing()
@@ -204,7 +191,8 @@ void MainWindow::getItem(int row)
 
     if(cesticka.size() > 0)
     {
-        cascade = (CvHaarClassifierCascade*)cvLoad(cesticka.c_str());
+        objectDetection.loadObjectDetector(cesticka.c_str());
+        //cascade = (CvHaarClassifierCascade*)cvLoad(cesticka.c_str());
         templateStatus = true;
     }
     else
@@ -317,9 +305,9 @@ void MainWindow::funkciaDaleko(double *hodnoty,double hodnota)
 void MainWindow::funkciaStredne(double *hodnoty,double hodnota)
 {
     if(hodnota<0.5)
-        hodnoty[1]=2*hodnota;
+        hodnoty[1] = 2 * hodnota;
     else
-        hodnoty[1]=2-2*hodnota;
+        hodnoty[1]= 2 - 2 * hodnota;
 }
 void MainWindow::funkciaBlizsko(double *hodnoty,double hodnota)
 {
@@ -406,4 +394,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::RightButton)
         choosenObjectIndex = -1;
+}
+
+void MainWindow::behaviorProcessing(QListWidgetItem *item)
+{
+    QString behaviourName = item->text();
+    behaviorProxy->runBehavior(behaviourName.toStdString());
 }

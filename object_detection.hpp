@@ -43,4 +43,6 @@ class ObjectDetection
     void ObjectDetection::drawDetectedObjects(cv::Mat &image);
 
     std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index);
+
+    void clearObjects();
 };

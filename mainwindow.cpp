@@ -113,6 +113,8 @@ void MainWindow::drawTemplate()
 
     image = cv::Mat(imageMain);
 
+    objectDetection.clearObjects();
+    objectDetection.haarDetectObjects(image);
     objectDetection.drawDetectedObjects(image);
 
     QImage img = QImage((const unsigned char*)(image.data), image.cols,image.rows, QImage::Format_RGB888);

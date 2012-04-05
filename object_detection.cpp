@@ -315,7 +315,7 @@ void ObjectDetection::squareDrawObjects(cv::Mat& image, const std::vector<std::v
 void ObjectDetection::loadHaarObjectDetector(std::string cascadePath)
 {
     qDebug() << QString(cascadePath.c_str());
-  m_haarCascade.load(cascadePath); // C++
+    if (! m_haarCascade.load(cascadePath)) { qDebug() << "ERROR"; } // C++
   // m_cascade = (CvHaarClassifierCascade*)cvLoad(cascadePath); // C
 }
 
@@ -384,6 +384,7 @@ void ObjectDetection::haarDetectObjects(cv::Mat image)
 
   for (size_t i = 0; i < foundObjects.size(); i++)
   {
+    qDebug() << "detected " << i;
     m_objects[0].resize(m_objects[0].size()+1); // alokacia miesta pre najdeny objekt
     m_objects[0][m_objects[0].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
     m_objects[0][m_objects[0].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
@@ -464,4 +465,10 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
 std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index)
 {
   return m_objects[index];
+}
+
+void ObjectDetection::clearObjects()
+{
+    m_objects.clear();
+    m_objects.resize(3);
 }

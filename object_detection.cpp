@@ -312,7 +312,7 @@ void ObjectDetection::squareDrawObjects(cv::Mat& image, const std::vector<std::v
 /**
 * Haar
 */
-void ObjectDetection::loadHaarObjectDetector(const char* cascadePath)
+void ObjectDetection::loadHaarObjectDetector(std::string cascadePath)
 {
   m_haarCascade.load(cascadePath); // C++
   // m_cascade = (CvHaarClassifierCascade*)cvLoad(cascadePath); // C

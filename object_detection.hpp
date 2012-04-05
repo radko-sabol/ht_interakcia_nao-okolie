@@ -35,7 +35,7 @@ class ObjectDetection
     //void squareDrawObjects(cv::Mat& image, const std::vector<std::vector<cv::Point>>& squares);
 
     // haar
-    void loadHaarObjectDetector(const char* cascadePath);
+    void loadHaarObjectDetector(std::string cascadePath);
     //void haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifierCascade* cascade, int do_pyramids, std::vector<std::vector<std::vector<cv::Scalar>>>& objects);
     void haarDetectObjects(cv::Mat image);
 

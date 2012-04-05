@@ -6,7 +6,7 @@
 #include <iostream>
 #include <math.h>
 #include <string.h>
-
+#include <QDebug>
 // OpenCV hlavickove subory
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
@@ -35,12 +35,12 @@ class ObjectDetection
     //void squareDrawObjects(cv::Mat& image, const std::vector<std::vector<cv::Point>>& squares);
 
     // haar
-    void loadHaarObjectDetector(const char* cascadePath);
+    void loadHaarObjectDetector(std::string cascadePath);
     //void haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifierCascade* cascade, int do_pyramids, std::vector<std::vector<std::vector<cv::Scalar>>>& objects);
     void haarDetectObjects(cv::Mat image);
 
     // vykreslenie najdenych objektov
-    void ObjectDetection::drawDetectedObjects(cv::Mat image);
+    void ObjectDetection::drawDetectedObjects(cv::Mat &image);
 
     std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index);
 };

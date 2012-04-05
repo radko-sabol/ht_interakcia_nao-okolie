@@ -19,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->listWidget_2->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->listWidget_2->setSortingEnabled(true);
 
+    ui->comboBox->insertItem(-1, QString("Vsetko"));
+    ui->comboBox->insertItem(0, QString("Haar"));
+
     templateStatus = false;
     brokerStatus = false;
     choosenObjectIndex = -1;
@@ -78,6 +81,7 @@ void MainWindow::getIpAndPort(QString& IP, QString& port)
     connect(ui->listWidget_2,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
     //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
     connect(ui->listWidget_3, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
+    connect(ui->comboBox,SIGNAL(activated(int)),this,SLOT(getSelectedDetector(int)));
 
     m_timer->start(33);
 }
@@ -89,7 +93,6 @@ void MainWindow::imageProcessing()
 
     if(templateStatus == true)
     {
-        object = objectDetection.detectTemplate(imageMain);
         drawTemplate();
     }
 
@@ -108,24 +111,9 @@ void MainWindow::drawTemplate()
 
     ui->listWidget_2->clear();
 
-    for(int i = 0; i < object->total; i++)
-    {
-        CvRect face_rect = *(CvRect*)cvGetSeqElem( object, i );
-        ui->listWidget_2->addItem(QString("%1 %2").arg(face_rect.x).arg(face_rect.y));
-        ui->listWidget_2->sortItems(Qt::AscendingOrder);
-    }
-
-    if(choosenObjectIndex >= 0 && object->total > 0 )
-    {
-        CvRect face_rect = *(CvRect*)cvGetSeqElem( object, choosenObjectIndex );
-
-        qDebug() << choosenObjectIndex << " " <<face_rect.x << " " << face_rect.y;
-        headCenter(face_rect.x, face_rect.y);
-    }
-
-    objectDetection.drawTemplate(imageMain);
-
     image = cv::Mat(imageMain);
+
+    objectDetection.drawDetectedObjects(image);
 
     QImage img = QImage((const unsigned char*)(image.data), image.cols,image.rows, QImage::Format_RGB888);
     ui->label->setPixmap(QPixmap::fromImage(img));
@@ -191,8 +179,7 @@ void MainWindow::getItem(int row)
 
     if(cesticka.size() > 0)
     {
-        objectDetection.loadObjectDetector(cesticka.c_str());
-        //cascade = (CvHaarClassifierCascade*)cvLoad(cesticka.c_str());
+        objectDetection.loadHaarObjectDetector(cesticka);
         templateStatus = true;
     }
     else
@@ -400,4 +387,9 @@ void MainWindow::behaviorProcessing(QListWidgetItem *item)
 {
     QString behaviourName = item->text();
     behaviorProxy->runBehavior(behaviourName.toStdString());
+}
+
+void MainWindow::getSelectedDetector(int index)
+{
+    qDebug() << index;
 }

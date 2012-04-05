@@ -26,7 +26,7 @@
 #include <opencv/highgui.h>
 
 #include "label.h"
-#include "objectdetection.h"
+#include "object_detection.hpp"
 
 namespace Ui
 {
@@ -55,6 +55,7 @@ private slots:
     void getChoosenObjectIndex(int row);
 
     void behaviorProcessing(QListWidgetItem *item);
+    void getSelectedDetector(int index);
 
 private:
      void getImage();

@@ -312,8 +312,9 @@ void ObjectDetection::squareDrawObjects(cv::Mat& image, const std::vector<std::v
 /**
 * Haar
 */
-void ObjectDetection::loadHaarObjectDetector(const char* cascadePath)
+void ObjectDetection::loadHaarObjectDetector(std::string cascadePath)
 {
+    qDebug() << QString(cascadePath.c_str());
   m_haarCascade.load(cascadePath); // C++
   // m_cascade = (CvHaarClassifierCascade*)cvLoad(cascadePath); // C
 }
@@ -390,7 +391,7 @@ void ObjectDetection::haarDetectObjects(cv::Mat image)
 }
 
 
-void ObjectDetection::drawDetectedObjects(cv::Mat imageMat)
+void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
 {
   for (size_t i = 0; i < m_objects.size(); i++) // ID identifikatora
   {

@@ -8,45 +8,23 @@
 /**
 * Circle
 */
-void ObjectDetection::onMouseClick(int event, int x, int y, int flags, void* image)
-{
-  if (event == CV_EVENT_LBUTTONDOWN) 
-  {
-    CvScalar s = cvGet2D(image, x, y);
-    //std::cout << "H:" << s.val[0] << "; S:" << s.val[1] << "; V:" << s.val[2] << std::endl;
-    /*
-    std::cout << "H:" << hsv_min_h << "; S:" << hsv_min_s << "; V:" << hsv_min_v << std::endl;
-    hsv_min_h = min(hsv_min_h, s.val[0]);
-    hsv_min_s = min(hsv_min_s, s.val[1]);
-    hsv_min_v = min(hsv_min_v, s.val[2]);
-    */
-  }
-  else if (event == CV_EVENT_RBUTTONDOWN) 
-  {
-    CvScalar s = cvGet2D(image, x, y);
-    //std::cout << "H:" << s.val[0] << "; S:" << s.val[1] << "; V:" << s.val[2] << std::endl;
-    /*
-    std::cout << "H:" << hsv_max_h << "; S:" << hsv_max_s << "; V:" << hsv_max_v << std::endl;
-    hsv_max_h = max(hsv_max_h, s.val[0]);
-    hsv_max_s = max(hsv_max_s, s.val[1]);
-    hsv_max_v = max(hsv_max_v, s.val[2]);
-    */
-  }
-}
-
+/*
 void ObjectDetection::cvOpen(const CvArr *src, CvArr *dst, IplConvKernel *element)
 {
 	cvErode (src, dst, element, 1);
 	cvDilate(src, dst, element, 1);
 }
+*/
 
+/*
 void ObjectDetection::cvClose(const CvArr *src, CvArr *dst, IplConvKernel *element)
 {
 	cvDilate(src, dst, element, 1);
 	cvErode (src, dst, element, 1);
 }
+*/
 
-void ObjectDetection::circleDetectObjects(cv::Mat& img, std::vector<std::vector<std::vector<cv::Scalar>>>& objects) // vela falosnych detekcii
+void ObjectDetection::circleDetectObjects(cv::Mat& img) // vela falosnych detekcii
 {
   cv::Mat gray, gray2, imageHSV;
   //cvtColor(img, gray, CV_BGR2GRAY);
@@ -75,15 +53,16 @@ void ObjectDetection::circleDetectObjects(cv::Mat& img, std::vector<std::vector<
     */
 
     //std::cout << "najdeny kruh" << std::endl;
-    objects[1].resize(objects[1].size()+1);
-    objects[1][objects[1].size()-1].resize(1);
-    objects[1][objects[1].size()-1][0] = cv::Scalar(circles[i][0], circles[i][1], circles[i][2], 0);
+    m_objects[1].resize(m_objects[1].size()+1);
+    m_objects[1][m_objects[1].size()-1].resize(1);
+    m_objects[1][m_objects[1].size()-1][0] = cv::Scalar(circles[i][0], circles[i][1], circles[i][2], 0);
   }
 
   //cv::imshow( "circless", img );
   //cv::imshow( "circles", gray );
 }
 
+/*
 void ObjectDetection::circleDetectAndDrawObjectsC(const IplImage* imageMain) // nefunguje podla mojich predstav
 {
   CvSize imageSize = cvGetSize(imageMain);
@@ -97,15 +76,15 @@ void ObjectDetection::circleDetectAndDrawObjectsC(const IplImage* imageMain) // 
   //IplImage* imageTresholded1 = cvCreateImage(imageSize, imageDepth, 1); // ciernobiely obrazok
   //IplImage* imageTresholded2 = cvCreateImage(imageSize, imageDepth, 1); // ciernobiely obrazok
 
-  /** Vytvorenie masky */
+  /** Vytvorenie masky *-/
   CvMat *mask = cvCreateMat(imageSize.height, imageSize.width, CV_8UC1);
   CvMat *imageTresholded1 = cvCreateMat(imageSize.height, imageSize.width, CV_8UC1);
   CvMat *imageTresholded2 = cvCreateMat(imageSize.height, imageSize.width, CV_8UC1);
 
-  /** Konverzia obrazu do HSV*/
+  /** Konverzia obrazu do HSV*-/
   cvCvtColor(imageCircle, imageHSV, CV_BGR2HSV);
 
-  /** Prahovanie farieb na Aibo-vu lopticku */
+  /** Prahovanie farieb na Aibo-vu lopticku *-/
   CvScalar hsv_min = cvScalar(0, 50, 170, 0);
   CvScalar hsv_max = cvScalar(10, 180, 256, 0);
   CvScalar hsv_min2 = cvScalar(170, 50, 170, 0);
@@ -118,10 +97,10 @@ void ObjectDetection::circleDetectAndDrawObjectsC(const IplImage* imageMain) // 
   /** Prahovanie farby tenisovej lopticky 
   cvInRangeS(imageHSV, cvScalar(0.11*256, 0.60*256, 0.20*256, 0),
 	                     cvScalar(0.14*256, 1.00*256, 1.00*256, 0), mask);
-  */
+  *-/
   cvReleaseImage(&imageHSV);
 
-  /* Perform morphological ops */
+  /* Perform morphological ops *-/
 	IplConvKernel *se21 = cvCreateStructuringElementEx(21, 21, 10, 10, CV_SHAPE_RECT, NULL);
 	IplConvKernel *se11 = cvCreateStructuringElementEx(11, 11, 5,  5,  CV_SHAPE_RECT, NULL);
 	cvClose(imageTresholded1, imageTresholded1, se21); // See completed example for cvClose definition
@@ -129,19 +108,19 @@ void ObjectDetection::circleDetectAndDrawObjectsC(const IplImage* imageMain) // 
 	cvReleaseStructuringElement(&se21);
 	cvReleaseStructuringElement(&se11);
 
-  /* Copy mask into a grayscale image */
+  /* Copy mask into a grayscale image *-/
   /*
 	IplImage *hough_in = cvCreateImage(size, 8, 1);
 	cvCopy(mask, hough_in, NULL);
   cvSmooth(hough_in, hough_in, CV_GAUSSIAN, 15, 15, 0, 0);
-  */
+  *-/
   //cvSmooth(imageTresholded1, imageTresholded1, CV_GAUSSIAN, 9, 9, 0, 0);
   cvCanny(imageTresholded1, imageTresholded1, (float)1, (float)1*3, 3);
   
 
   //cvSmooth(imageTresholded1, imageTresholded1, CV_GAUSSIAN, 15, 15, 0, 0);
 
-	/* Run the Hough function */
+    /* Run the Hough function *-/
 	CvMemStorage *storage = cvCreateMemStorage(0);
   CvSeq *circles = cvHoughCircles(imageTresholded1, storage, CV_HOUGH_GRADIENT, 1, imageTresholded1->height/10, 100, 40, 0, 0);
 	cvReleaseMemStorage(&storage);
@@ -170,6 +149,7 @@ void ObjectDetection::circleDetectAndDrawObjectsC(const IplImage* imageMain) // 
   //cvShowImage("Video ball tresholded #2", imageBallTresholded2);
   
 }
+*/
 
 /**
 * The "Square Detector" program.
@@ -193,7 +173,7 @@ double ObjectDetection::angle(cv::Point pt1, cv::Point pt2, cv::Point pt0 )
 
 // returns sequence of squares detected on the image.
 // the sequence is stored in the specified memory storage
-void ObjectDetection::squareDetectObjects(const cv::Mat& image, std::vector<std::vector<std::vector<cv::Scalar>>>& objects)
+void ObjectDetection::squareDetectObjects(const cv::Mat& image)
 {
   /** Deklaracia premennych */
   cv::Mat pyr,
@@ -291,7 +271,7 @@ void ObjectDetection::squareDetectObjects(const cv::Mat& image, std::vector<std:
           { 
             //std::cout << "najdeny stvorec" << std::endl;
             //squares.push_back(approx);
-            objects[2].push_back(approxS);
+            m_objects[2].push_back(approxS);
           }
         }
       }
@@ -303,6 +283,7 @@ void ObjectDetection::squareDetectObjects(const cv::Mat& image, std::vector<std:
 }
 
 // the function draws all the squares in the image
+/*
 void ObjectDetection::squareDrawObjects(cv::Mat& image, const std::vector<std::vector<cv::Point>>& squares)
 {
     for(size_t i = 0; i < squares.size(); i++)
@@ -326,15 +307,18 @@ void ObjectDetection::squareDrawObjects(cv::Mat& image, const std::vector<std::v
 
     cv::imshow(wndname, image);
 }
+*/
 
 /**
 * Haar
 */
-CvHaarClassifierCascade* ObjectDetection::loadObjectDetector(const char* cascadePath)
+void ObjectDetection::loadHaarObjectDetector(const char* cascadePath)
 {
-  return (CvHaarClassifierCascade*)cvLoad(cascadePath);
+  m_haarCascade.load(cascadePath); // C++
+  // m_cascade = (CvHaarClassifierCascade*)cvLoad(cascadePath); // C
 }
 
+/*
 void ObjectDetection::haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifierCascade* cascade, int do_pyramids, std::vector<std::vector<std::vector<cv::Scalar>>>& objects)
 {
   CvSize size = cvGetSize(image);
@@ -347,7 +331,7 @@ void ObjectDetection::haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifie
       scale = 1;
 
   /* if the flag is specified, down-scale the input image to get a
-      performance boost w/o loosing quality (perhaps) */
+      performance boost w/o loosing quality (perhaps) *-/
   if(do_pyramids)
   {
     smallImage = cvCreateImage(cvSize(imageCircle->width/2, imageCircle->height/2), IPL_DEPTH_8U, 3);
@@ -355,14 +339,14 @@ void ObjectDetection::haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifie
     scale = 2;
   }
   //cvCvtColor(smallImage, smallImage, CV_BGR2GRAY);
-  /* use the fastest variant */
+  /* use the fastest variant *-/
   foundObjects = cvHaarDetectObjects(smallImage, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING, cvSize(0, 0));
   //foundObjects = cvHaarDetectObjects(smallImage, cascade, storage, 1.2, 2, CV_HAAR_DO_ROUGH_SEARCH, cvSize(0, 0));
   
-  /* draw all the rectangles */
+  /* draw all the rectangles *-/
   for(i = 0; i < foundObjects->total; i++)
   {
-    /* extract the rectanlges only */
+    /* extract the rectanlges only *-/
     CvRect objectRect = *(CvRect*)cvGetSeqElem(foundObjects, i);
     //if ((objectRect.width > 20) && (objectRect.width < 40))
     //{
@@ -372,7 +356,7 @@ void ObjectDetection::haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifie
       /*
       cv::Point center(objectRect.x + objectRect.width*0.5, objectRect.y + objectRect.height*0.5);
       cvEllipse(imageCircle, center, cvSize(objectRect.width*0.5, objectRect.height*0.5), 0, 0, 360, cvScalar(255, 0, 0), 2, 8, 0 );
-      */
+      *-/
 
       objects[0].resize(objects[0].size()+1);
       objects[0][objects[0].size()-1].resize(1);
@@ -385,9 +369,9 @@ void ObjectDetection::haarDetectAndDrawObjectsC(IplImage* image, CvHaarClassifie
   cvReleaseImage(&imageCircle);
   cvReleaseMemStorage(&storage);
 }
+*/
 
-
-void ObjectDetection::haarDetectObjects(cv::Mat image, cv::CascadeClassifier cascade, std::vector<std::vector<std::vector<cv::Scalar>>>& objects)
+void ObjectDetection::haarDetectObjects(cv::Mat image)
 {
   std::vector<cv::Rect> foundObjects;
   cv::Mat imageGray;
@@ -395,27 +379,27 @@ void ObjectDetection::haarDetectObjects(cv::Mat image, cv::CascadeClassifier cas
   cv::cvtColor(image, imageGray, CV_BGR2GRAY);
   cv::equalizeHist(imageGray, imageGray);
   
-  cascade.detectMultiScale(imageGray, foundObjects, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(7, 7));
+  m_haarCascade.detectMultiScale(imageGray, foundObjects, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(7, 7));
 
   for (size_t i = 0; i < foundObjects.size(); i++)
   {
-    objects[0].resize(objects[0].size()+1); // alokacia miesta pre najdeny objekt
-    objects[0][objects[0].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
-    objects[0][objects[0].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
+    m_objects[0].resize(m_objects[0].size()+1); // alokacia miesta pre najdeny objekt
+    m_objects[0][m_objects[0].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
+    m_objects[0][m_objects[0].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
   }
 }
 
 
-void ObjectDetection::drawDetectedObjects(cv::Mat imageMat, std::vector<std::vector<std::vector<cv::Scalar>>>& objects)
+void ObjectDetection::drawDetectedObjects(cv::Mat imageMat)
 {
-  for (size_t i = 0; i < objects.size(); i++) // ID identifikatora
+  for (size_t i = 0; i < m_objects.size(); i++) // ID identifikatora
   {
-    for (size_t j = 0; j < objects[i].size(); j++) // najdene objekty
+    for (size_t j = 0; j < m_objects[i].size(); j++) // najdene objekty
     {
       if (i == 0) // detegovany haar objekt
       {
-        cv::rectangle(imageMat, cv::Point(objects[i][j][0][0], objects[i][j][0][1]), cv::Point(objects[i][j][0][0] + objects[i][j][0][2], objects[i][j][0][1] + objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
-        cv::Point center(objects[i][j][0][0] + objects[i][j][0][2]*0.5, objects[i][j][0][1] + objects[i][j][0][3]*0.5);
+        cv::rectangle(imageMat, cv::Point(m_objects[i][j][0][0], m_objects[i][j][0][1]), cv::Point(m_objects[i][j][0][0] + m_objects[i][j][0][2], m_objects[i][j][0][1] + m_objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
+        cv::Point center(m_objects[i][j][0][0] + m_objects[i][j][0][2]*0.5, m_objects[i][j][0][1] + m_objects[i][j][0][3]*0.5);
         cv::circle(imageMat, center, 1, cv::Scalar(255, 0, 0), 3, 8, 0);
         std::cout << "X: " << center.x << " ; Y: " << center.y << std::endl;
           
@@ -430,18 +414,18 @@ void ObjectDetection::drawDetectedObjects(cv::Mat imageMat, std::vector<std::vec
 
       if (i == 1) // detegovany kruh
       {
-        cv::Point circleCenter(cvRound(objects[i][j][0][0]), cvRound(objects[i][j][0][1]));
-        int circleRadius = cvRound(objects[i][j][0][2]);
+        cv::Point circleCenter(cvRound(m_objects[i][j][0][0]), cvRound(m_objects[i][j][0][1]));
+        int circleRadius = cvRound(m_objects[i][j][0][2]);
 
         cv::circle(imageMat, circleCenter, circleRadius, cv::Scalar(0, 0, 255), 3, 8, 0);
       }
 
       if (i == 2) // detegovany stvorec
       {
-        const cv::Scalar p1 = objects[i][j][0];
-        const cv::Scalar p2 = objects[i][j][1];
-        const cv::Scalar p3 = objects[i][j][2];
-        const cv::Scalar p4 = objects[i][j][3];
+        const cv::Scalar p1 = m_objects[i][j][0];
+        const cv::Scalar p2 = m_objects[i][j][1];
+        const cv::Scalar p3 = m_objects[i][j][2];
+        const cv::Scalar p4 = m_objects[i][j][3];
 
         /*
         std::cout << "P1 - X: " << p1[0] << " ;Y: " << p1[1] << " ;?: " << p1[2] << " ;?: " << p1[3] << std::endl;
@@ -473,5 +457,10 @@ void ObjectDetection::drawDetectedObjects(cv::Mat imageMat, std::vector<std::vec
   }
 
   // zobrazenie obrazu s detegovanymi objektmi
-  cv::imshow("Video detected", imageMat);
+  //cv::imshow("Video detected", imageMat);
+}
+
+std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index)
+{
+  return m_objects[index];
 }

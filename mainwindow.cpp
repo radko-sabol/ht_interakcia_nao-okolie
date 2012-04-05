@@ -58,7 +58,7 @@ void MainWindow::getIpAndPort(QString& IP, QString& port)
 
     ui->label->getMotionProxy(IP, port);
 
-   // motionProxy->setStiffnesses("Body",1);
+   //motionProxy->setStiffnesses("Body",1);
 
    // behaviorProxy->runBehavior("standUp");
    // behaviorProxy->runBehavior("Init");

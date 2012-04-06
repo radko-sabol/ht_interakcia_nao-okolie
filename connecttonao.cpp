@@ -3,7 +3,6 @@
 
 ConnectToNao::ConnectToNao(QWidget *parent) : QWidget(parent), ui(new Ui::ConnectToNao)
 {
-    qDebug() << "ConnectToNao konstruktor";
     robotIP = '\0';
     robotPort = '\0';
     ui->setupUi(this);
@@ -43,14 +42,4 @@ void ConnectToNao::on_pushButton_pressed()
     this->close();
     mainWindow.show();
     mainWindow.getIpAndPort(robotIP, robotPort);
-}
-
-void ConnectToNao::closeEvent(QCloseEvent *event)
-{
-    qDebug() << "close event";
-}
-
-void ConnectToNao::on_lineEdit_textChanged(const QString &arg1)
-{
-
 }

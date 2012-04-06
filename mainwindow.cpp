@@ -33,17 +33,16 @@ MainWindow::~MainWindow()
 {
     delete ui;
 
-    behaviorProxy->runBehavior("sitDown");
-
-    if(brokerStatus == true)
+    if (brokerStatus)
     {
         delete textToSpeech;
         camProxy->unsubscribe(clientName);
         delete camProxy;
-        motionProxy->setStiffnesses("Body",0);
+        behaviorProxy->runBehavior("sitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
+        delete behaviorProxy;
+        motionProxy->setStiffnesses("Body", 0);
         delete motionProxy;
         delete m_timer;
-        delete behaviorProxy;
     }
 }
 

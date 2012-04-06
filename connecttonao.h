@@ -9,7 +9,7 @@
 
 namespace Ui
 {
-class ConnectToNao;
+    class ConnectToNao;
 }
 
 class ConnectToNao : public QWidget

@@ -3,10 +3,10 @@
 
 ConnectToNao::ConnectToNao(QWidget *parent) : QWidget(parent), ui(new Ui::ConnectToNao)
 {
+    qDebug() << "ConnectToNao konstruktor";
     robotIP = '\0';
     robotPort = '\0';
     ui->setupUi(this);
-
 }
 
 ConnectToNao::~ConnectToNao()
@@ -20,14 +20,14 @@ void ConnectToNao::on_lineEdit_textEdited(const QString &IP)
     qDebug() << robotIP;
 }
 
-
-
 void ConnectToNao::on_checkBox_toggled(bool checked)
 {
-    if(checked == true)
-        robotPort = "9559";
-    else
-        robotPort = '\0';
+    QString port;
+    if (checked == true) { port = "9559"; }
+    else                 { port = '\0'; }
+
+    robotPort = port;
+    ui->lineEdit_2->setText(port);
 
     qDebug() << robotPort;
 }
@@ -43,5 +43,14 @@ void ConnectToNao::on_pushButton_pressed()
     this->close();
     mainWindow.show();
     mainWindow.getIpAndPort(robotIP, robotPort);
+}
+
+void ConnectToNao::closeEvent(QCloseEvent *event)
+{
+    qDebug() << "close event";
+}
+
+void ConnectToNao::on_lineEdit_textChanged(const QString &arg1)
+{
 
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>340</width>
     <height>140</height>
    </rect>
   </property>
@@ -16,9 +16,15 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>340</width>
+    <height>140</height>
+   </size>
+  </property>
   <property name="maximumSize">
    <size>
-    <width>400</width>
+    <width>340</width>
     <height>140</height>
    </size>
   </property>
@@ -34,11 +40,20 @@
      <height>13</height>
     </rect>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>42</width>
+     <height>13</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>42</width>
+     <height>13</height>
+    </size>
+   </property>
    <property name="text">
     <string>Robot IP</string>
-   </property>
-   <property name="buddy">
-    <cstring>lineEdit</cstring>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -51,7 +66,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Robot Port</string>
+    <string>Robot port</string>
    </property>
    <property name="buddy">
     <cstring>lineEdit_2</cstring>
@@ -60,66 +75,67 @@
   <widget class="QCheckBox" name="checkBox">
    <property name="geometry">
     <rect>
-     <x>170</x>
+     <x>76</x>
      <y>60</y>
-     <width>16</width>
+     <width>101</width>
      <height>17</height>
     </rect>
    </property>
-   <property name="text">
-    <string notr="true"/>
+   <property name="toolTip">
+    <string>Use default port 9559</string>
    </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>60</y>
-     <width>81</width>
-     <height>16</height>
-    </rect>
+   <property name="layoutDirection">
+    <enum>Qt::RightToLeft</enum>
    </property>
    <property name="text">
-    <string>Use default port</string>
+    <string notr="true">Use default port</string>
    </property>
-   <property name="buddy">
-    <cstring>checkBox</cstring>
+   <property name="checked">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>30</y>
+     <x>240</x>
+     <y>27</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Connect to the robot Nao</string>
+   </property>
    <property name="text">
     <string>Connect</string>
+   </property>
+   <property name="autoDefault">
+    <bool>false</bool>
+   </property>
+   <property name="default">
+    <bool>false</bool>
+   </property>
+   <property name="flat">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_2">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>90</y>
+     <x>240</x>
+     <y>89</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Close the window</string>
+   </property>
    <property name="text">
     <string>Close</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEdit">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>30</y>
-     <width>201</width>
-     <height>20</height>
-    </rect>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_2">
@@ -127,9 +143,31 @@
     <rect>
      <x>80</x>
      <y>90</y>
-     <width>201</width>
+     <width>151</width>
      <height>20</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>27</y>
+     <width>151</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>IP address of the robot</string>
+   </property>
+   <property name="inputMethodHints">
+    <set>Qt::ImhNone</set>
+   </property>
+   <property name="editable">
+    <bool>true</bool>
+   </property>
+   <property name="minimumContentsLength">
+    <number>0</number>
    </property>
   </widget>
  </widget>

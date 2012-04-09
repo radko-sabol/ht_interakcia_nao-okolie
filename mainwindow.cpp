@@ -1,58 +1,75 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
-#include <stdio.h>
-#include <conio.h>
-#include <Windows.h>
-#include <QFileDialog>
-
+/**
+ * Konstruktor
+ */
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
-    captureRobotCam = 0;
-    m_timer = new QTimer();
-    ui->listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    ui->listWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui->setupUi(this);
+  captureRobotCam = 0;
+  m_timer = new QTimer();
+  ui->listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui->listWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    ui->listWidget_2->setSelectionMode(QAbstractItemView::SingleSelection);
-    ui->listWidget_2->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->listWidget_2->setSortingEnabled(true);
+  ui->listWidget_2->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui->listWidget_2->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui->listWidget_2->setSortingEnabled(true);
 
-    ui->comboBox->insertItem(-1, QString("Vsetko"));
-    ui->comboBox->insertItem(0, QString("Haar"));
+  ui->comboBox->insertItem(none, QString("..."));
+  ui->comboBox->insertItem(haarDetection, QString("Haar"));
+  ui->comboBox->insertItem(circleDetection, QString("Circle"));
+  ui->comboBox->insertItem(squareDetection, QString("Square"));
 
-    templateStatus = false;
-    brokerStatus = false;
-    choosenObjectIndex = -1;
+  m_haarCascadeLoaded = false;
+  m_brokerConnection = false;
+  choosenObjectIndex = -1;
 
-    speed  = theta = 0;
+  speed  = theta = 0;
 }
 
+/**
+ * Destruktor
+ */
 MainWindow::~MainWindow()
 {
-    delete ui;
+  delete ui;
+  delete m_timer;
 
-    if (brokerStatus)
-    {
-        delete textToSpeech;
-        camProxy->unsubscribe(clientName);
-        delete camProxy;
-        behaviorProxy->runBehavior("sitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
-        delete behaviorProxy;
-        motionProxy->setStiffnesses("Body", 0);
-        delete motionProxy;
-        delete m_timer;
-    }
+  if (m_brokerConnection) // kontrola, ci som bol pripojeny na robota
+  {
+    delete textToSpeech;
+    camProxy->unsubscribe(clientName);
+    delete camProxy;
+    behaviorProxy->runBehavior("sitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
+    delete behaviorProxy;
+    motionProxy->setStiffnesses("Body", 0);
+    delete motionProxy;
+  }
 }
 
-void MainWindow::getIpAndPort(QString& IP, QString& port)
+/**
+ * Pripojenie na hardware robota, ktoreho NaoQi bezi na danej IP adrese a porte
+ *
+ * @param QString &IP - IP adresa robota
+ * @param QString &port - port
+ */
+void MainWindow::getIpAndPort(QString &IP, QString &port)
 {
-    brokerStatus = true;
-	robotIP = IP.toStdString();
-	robotPort = port.toInt();
+  robotIP = IP.toStdString();
+  robotPort = port.toInt();
 
-    qDebug() << "IP " << IP << "Port " << port;
+  if (robotIP == "127.0.0.1") // pripajam sa na lokalnu kameru v PC
+  {
+    m_brokerConnection = false; // nastavenie flagu informujuceho, ze sa nepripajam na robota
+    cap.open(0);
+    if (! cap.isOpened()) { /*return -1;*/ }
+  }
+  else
+  {
+    m_brokerConnection = true; // nastavenie flagu informujuceho, ze sa pripajam na robota
+
+    qDebug() << "IP: " << IP << ", port: " << port;
     textToSpeech = new AL::ALTextToSpeechProxy(robotIP, robotPort);
     camProxy = new AL::ALVideoDeviceProxy(robotIP, robotPort);
     motionProxy = new AL::ALMotionProxy(robotIP, robotPort);
@@ -65,132 +82,226 @@ void MainWindow::getIpAndPort(QString& IP, QString& port)
    // behaviorProxy->runBehavior("standUp");
    // behaviorProxy->runBehavior("Init");
 
-    camProxy->setParam(AL::kCameraSelectID, 1);
+    camProxy->setParam(AL::kCameraSelectID, 1); // 0 - horna kamera; 1 - dolna kamera
     clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
 
     behaviourNames = behaviorProxy->getInstalledBehaviors();
 
-    for(int i = 0; i < behaviourNames.size(); i++)
-        ui->listWidget_3->addItem(QString(behaviourNames[i].c_str()));
+    for (int i = 0; i < behaviourNames.size(); i++) { ui->listWidget_3->addItem(QString(behaviourNames[i].c_str())); }
 
     imageMain = cvCreateImage(cvSize(320, 240), 8, 3);
+  }
 
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(imageProcessing()));
-    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
-    connect(ui->listWidget_2,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
-    //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
-    connect(ui->listWidget_3, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
-    connect(ui->comboBox,SIGNAL(activated(int)),this,SLOT(getSelectedDetector(int)));
+  connect(m_timer, SIGNAL(timeout()), this, SLOT(imageProcessing()));
+  connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
+  connect(ui->listWidget_2,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
+  //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
+  connect(ui->listWidget_3, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
 
-    m_timer->start(33);
+  m_timer->start(33);
 }
 
+/**
+ * Funkcia obsluhujuca ziskavanie obrazu, detegovanie a vykreslovanie objektov a vykreslovanie obrazu do GUI
+ */
 void MainWindow::imageProcessing()
 {
+  getImage(); // ziskanie obrazu z kamery do premennej imageMat
 
-    getImage();
+  findObjectsInImage(); // vykonanie pozadovaneho sposobu detekcie objektov v obraze imageMat
+  markObjectsInImage(); // zakreslenie najdenych objektov v obraze imageMat
 
-    if(templateStatus == true)
+  showImage(); // vykreslenie obrazu do GUI
+/*
+    if (templateStatus == true)
     {
         drawTemplate();
     }
-
+*/
 }
 
+/**
+ * Ziskanie frame-u z kamery robota/PC a zapisanie ho do premennej imageMat
+ */
 void MainWindow::getImage()
 {
+  if (m_brokerConnection) // kontrola, ci som pripojeny na robota
+  {
     captureRobotCam = camProxy->getImageRemote(clientName);
     cvSetData(imageMain, (char*)captureRobotCam[6].GetBinary(), 960);
 
-    cvCvtColor(imageMain,imageMain,CV_BGR2RGB);
+    cvCvtColor(imageMain, imageMain, CV_BGR2RGB); // zmena z BGR na RGB farebny priestor
+    imageMat = cv::Mat(imageMain);
+  }
+  else
+  {
+    cv::Mat image; // pomocna premenna z dovodu, ze resize obrazu jednej premennej (ako vstupnej aj vystupnej) nefunguje korektne
+    cap >> image;
+    cv::cvtColor(image, image, CV_BGR2RGB); // zmena z BGR na RGB farebny priestor
+    cv::resize(image, imageMat, cv::Size(320, 240), 0, 0, CV_INTER_LINEAR); // zmen velkosti obrazu na 320x240
+  }
 }
 
+/**
+ * Vykreslenie obrazu do gui (z premennej imageMat)
+ */
+void MainWindow::showImage()
+{
+  QImage img = QImage((const unsigned char*)(imageMat.data), imageMat.cols, imageMat.rows, QImage::Format_RGB888);
+  ui->label->setPixmap(QPixmap::fromImage(img));
+  ui->label->resize(ui->label->pixmap()->size());
+}
+
+/**
+ * Vykonanie pozadovanej detekcie objektov v obraze imageMat
+ */
+void MainWindow::findObjectsInImage()
+{
+  objectDetection.clearObjects(); // vyprazdnenie premennej, do ktorej sa zapisuju pozicie najdenych objektov
+
+  if ((m_selectedDetection == haarDetection) && (m_haarCascadeLoaded == true))
+  {
+    objectDetection.haarDetectObjects(imageMat.clone());
+  }
+
+  if (m_selectedDetection == circleDetection)
+  {
+    objectDetection.circleDetectObjects(imageMat.clone());
+  }
+
+  if (m_selectedDetection == squareDetection)
+  {
+    objectDetection.squareDetectObjects(imageMat.clone());
+  }
+}
+
+/**
+ * Zaznacenie najdenych objektov do premennej imageMat
+ */
+void MainWindow::markObjectsInImage()
+{
+  objectDetection.drawDetectedObjects(imageMat);
+}
+
+/*
 void MainWindow::drawTemplate()
 {
+  ui->listWidget_2->clear();
 
-    ui->listWidget_2->clear();
+  objectDetection.clearObjects();
+  objectDetection.haarDetectObjects(imageMat);
+  objectDetection.drawDetectedObjects(imageMat);
 
-    image = cv::Mat(imageMain);
-
-    objectDetection.clearObjects();
-    objectDetection.haarDetectObjects(image);
-    objectDetection.drawDetectedObjects(image);
-
-    QImage img = QImage((const unsigned char*)(image.data), image.cols,image.rows, QImage::Format_RGB888);
-    ui->label->setPixmap(QPixmap::fromImage(img));
-    ui->label->resize(ui->label->pixmap()->size());
-
+  QImage img = QImage((const unsigned char*)(imageMat.data), imageMat.cols,imageMat.rows, QImage::Format_RGB888);
+  ui->label->setPixmap(QPixmap::fromImage(img));
+  ui->label->resize(ui->label->pixmap()->size());
 }
+*/
 
-void MainWindow::templateProcessing()
+/**
+ *
+ */
+void MainWindow::templateProcessing() // TODO: mne osobne tento nazov funkcie na prvy pohlad nehovori nic
 {
-    getXML();
-    showTemplates();
-    connect(ui->listWidget,SIGNAL(currentRowChanged(int)),this,SLOT(getItem(int)));
+  getXML();
+  showTemplates();
+  connect(ui->listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(getItem(int)));
 }
 
+/**
+ *
+ */
 void MainWindow::getXML()
 {
+  ui->listWidget->clear();
 
-    ui->listWidget->clear();
+  XMLName.clear();
+  XMLPath.clear();
 
-    XMLName.clear();
-    XMLPath.clear();
-
-    fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), ".", tr("Image Files (*.rnns)"));
+  fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), ".", tr("Image Files (*.rnns)"));
 
 
-    RNNSFile.setFileName(fileName);
+  RNNSFile.setFileName(fileName);
 
-    RNNSFile.open(QIODevice::ReadOnly | QIODevice::Text);
+  RNNSFile.open(QIODevice::ReadOnly | QIODevice::Text);
 
-    QTextStream in(&RNNSFile);
+  QTextStream in(&RNNSFile);
 
-    std::vector<QString> line;
+  std::vector<QString> line;
 
-    while (!in.atEnd())
+  while (!in.atEnd())
+  {
+      line.push_back(in.readLine());
+  }
+
+  for(int i = 0; i < line.size(); i++)
+  {
+    if((i % 2) == 0)
     {
-        line.push_back(in.readLine());
-    }
-
-    for(int i = 0; i < line.size(); i++)
-    {
-        if((i % 2) == 0)
-        {
-            XMLName.push_back(line[i]);
-        }
-        else
-        {
-            XMLPath.push_back(line[i]);
-        }
-    }
-}
-
-void MainWindow::showTemplates()
-{
-    for(int i = 0; i < XMLName.size(); i++)
-    {
-        ui->listWidget->addItem(XMLName[i]);
-    }
-}
-
-void MainWindow::getItem(int row)
-{
-    std::string cesticka = XMLPath[row].toStdString();
-
-    if(cesticka.size() > 0)
-    {
-        objectDetection.loadHaarObjectDetector(cesticka);
-        templateStatus = true;
+      XMLName.push_back(line[i]);
     }
     else
-        templateStatus = false;
+    {
+      XMLPath.push_back(line[i]);
+    }
+  }
 }
 
+/**
+ *
+ */
+void MainWindow::showTemplates()
+{
+  for (int i = 0; i < XMLName.size(); i++)
+  {
+    ui->listWidget->addItem(XMLName[i]);
+  }
+}
+
+/**
+ * Nacitanie haar kaskad
+ */
+void MainWindow::getItem(int row)
+{
+  std::string cesticka = XMLPath[row].toStdString();
+  std::cout << cesticka << std::endl;
+
+  if (cesticka.size() > 0)
+  {
+    m_haarCascadeLoaded = objectDetection.loadHaarObjectDetector(cesticka);
+    //templateStatus = true;
+  }
+  else { m_haarCascadeLoaded = false; }
+}
+
+/**
+ *
+ */
 void MainWindow::motionProcessing()
 {
-    headCenter();
+  headCenter();
 }
+
+/**
+ *
+ */
+void MainWindow::behaviorProcessing(QListWidgetItem *item)
+{
+    QString behaviourName = item->text();
+    behaviorProxy->runBehavior(behaviourName.toStdString());
+}
+
+/**
+ * Event handler zachytavajuci zmenu hodnoty v combo boxe
+ *
+ * @paramt int index - index zvolenej detekcie
+ */
+void MainWindow::on_comboBox_activated(int index)
+{
+  qDebug() << index;
+  m_selectedDetection = index;
+}
+
 
 void MainWindow::headCenter(double x, double y)
 {
@@ -382,15 +493,4 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::RightButton)
         choosenObjectIndex = -1;
-}
-
-void MainWindow::behaviorProcessing(QListWidgetItem *item)
-{
-    QString behaviourName = item->text();
-    behaviorProxy->runBehavior(behaviourName.toStdString());
-}
-
-void MainWindow::getSelectedDetector(int index)
-{
-    qDebug() << index;
 }

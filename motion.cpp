@@ -7,7 +7,7 @@
  * @param int y - y_ova suradnica objektu v obraze
  * @param AL::ALMotionProxy& mp - Nao motion proxy 
  */
-void Motion::headCenter(int x, int y, AL::ALMotionProxy& mp)
+void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
 {
   //mp.setAngles("HeadYaw",0,0.05);
   //mp.setAngles("HeadPitch",0,0.05);

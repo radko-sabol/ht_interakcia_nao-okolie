@@ -8,7 +8,7 @@
 class Motion
 {
 public:
-  void headCenter(int x, int y, AL::ALMotionProxy& mp);
+  void headCenter(int x, int y, AL::ALMotionProxy &mp);
 
 private:
   void funkciaPrislusnosti(float *hodnoty, float hodnota);

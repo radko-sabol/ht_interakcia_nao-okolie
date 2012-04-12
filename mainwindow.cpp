@@ -7,8 +7,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
-  captureRobotCam = 0;
-  m_timer = new QTimer();
+
   ui->haarCascadesListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
   ui->haarCascadesListWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
@@ -21,11 +20,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->chooseDetectionComboBox->insertItem(circleDetection, QString("Circle"));
   ui->chooseDetectionComboBox->insertItem(squareDetection, QString("Square"));
 
+  m_timer = new QTimer();
   m_haarCascadeLoaded = false;
   m_brokerConnection = false;
+  m_selectedDetection = none;
   choosenObjectIndex = -1;
-
-  speed  = theta = 0;
+  captureRobotCam = 0;
+  speed = theta = 0;
 }
 
 /**
@@ -77,10 +78,10 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
     ui->videoStreamLabel->getMotionProxy(IP, port);
 
-   motionProxy->setStiffnesses("Body",1);
+    motionProxy->setStiffnesses("Body", 1);
 
-   // behaviorProxy->runBehavior("standUp");
-   // behaviorProxy->runBehavior("Init");
+    //behaviorProxy->runBehavior("standUp");
+    //behaviorProxy->runBehavior("Init");
 
     camProxy->setParam(AL::kCameraSelectID, 1); // 0 - horna kamera; 1 - dolna kamera
     clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
@@ -109,6 +110,24 @@ void MainWindow::imageProcessing()
   getImage(); // ziskanie obrazu z kamery do premennej imageMat
 
   findObjectsInImage(); // vykonanie pozadovaneho sposobu detekcie objektov v obraze imageMat
+
+  // vycentrovanie hlavy na stred objektu ak robot vidi len jeden objekt (zatial len testovanie na haar detekcii)
+  std::vector< std::vector<cv::Scalar> > detectedObjects = objectDetection.getObjects(m_selectedDetection);
+  if (detectedObjects.size() == 1)
+  {
+    if (m_selectedDetection == haarDetection) // haar
+    {
+      int x = (detectedObjects[0][0][0] + (detectedObjects[0][0][2] * 0.5)),
+          y = (detectedObjects[0][0][1] + (detectedObjects[0][0][3] * 0.5));
+      motion.headCenter(x, y, *motionProxy);
+      //detectedObjects[0][0][0] // x
+      //detectedObjects[0][0][1] // y
+      //detectedObjects[0][0][2] // width
+      //detectedObjects[0][0][3] // height
+    }
+  }
+
+  //std::cout << "[" << m_selectedDetection << "] najdenych objektov: " << (detectedObjects.size()) << std::endl;
   markObjectsInImage(); // zakreslenie najdenych objektov v obraze imageMat
 
   showImage(); // vykreslenie obrazu do GUI
@@ -279,7 +298,7 @@ void MainWindow::getItem(int row)
  */
 void MainWindow::motionProcessing()
 {
-  headCenter();
+  //headCenter();
 }
 
 /**
@@ -302,7 +321,7 @@ void MainWindow::on_chooseDetectionComboBox_activated(int index)
   m_selectedDetection = index;
 }
 
-
+/*
 void MainWindow::headCenter(double x, double y)
 {
     double nchange_x = 0;
@@ -342,98 +361,7 @@ void MainWindow::headCenter(double x, double y)
         motionProxy->changeAngles("HeadPitch", -change_y,0.05f);
     else motionProxy->changeAngles("HeadPitch", change_y,0.05f);
 }
-
-void MainWindow::headCenter()
-{
-        //float a=0.5;
-        //double b=0;
-        //double theta=0;
-        //double frequency=0.5;
-
-        double x = 0;//face_rect.x;
-        double y = 0;// face_rect.y;
-        double nchange_x = 0;
-        double nchange_y = 0;
-        double mnozina_x[3];
-        double mnozina_y[3];
-
-        if(x < 160)
-             nchange_x = (160 - x) / 160;
-        else nchange_x = (x - 160) / 160;
-
-        if(y < 120)
-             nchange_y = (120 - y) / 120;
-        else nchange_y = (y - 120) / 120;
-
-        funkciaPrislusnosti(mnozina_x, nchange_x);
-        funkciaPrislusnosti(mnozina_y, nchange_y);
-
-        double change_x=vyhodnoteniePravidiel(mnozina_x) * 0.1; //change in gradian
-        double change_y=vyhodnoteniePravidiel(mnozina_y) * 0.1;
-
-        double distance;
-
-        std::vector<float> position_y = motionProxy->getAngles("HeadPitch",true);
-
-        distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
-
-        if(x < 160)
-        {
-             motionProxy->changeAngles("HeadYaw", change_x, 0.05f);
-        }
-        else
-        {
-             motionProxy->changeAngles("HeadYaw", -change_x, 0.05f);
-        }
-        if(y < 120)
-            motionProxy->changeAngles("HeadPitch", -change_y,0.05f);
-        else motionProxy->changeAngles("HeadPitch", change_y,0.05f);
-}
-
-void MainWindow::funkciaPrislusnosti(double *hodnoty, double hodnota)
-{
-    funkciaBlizsko(hodnoty,hodnota);
-    funkciaStredne(hodnoty,hodnota);
-    funkciaDaleko(hodnoty,hodnota);
-}
-
-void MainWindow::funkciaDaleko(double *hodnoty,double hodnota)
-{
-    hodnoty[0]=(1-2*hodnota);
-}
-void MainWindow::funkciaStredne(double *hodnoty,double hodnota)
-{
-    if(hodnota<0.5)
-        hodnoty[1] = 2 * hodnota;
-    else
-        hodnoty[1]= 2 - 2 * hodnota;
-}
-void MainWindow::funkciaBlizsko(double *hodnoty,double hodnota)
-{
-    hodnoty[2]=2*hodnota-1;
-}
-
-double MainWindow::vyhodnoteniePravidiel(const double *hodnotyx)
-{
-    double vystup[3]={0,0,0};
-
-    if(hodnotyx[0]>0)
-    {
-        //std::cout << "odpal 1";
-        vystup[0]=hodnotyx[0]*0.05f;
-    }
-    if(hodnotyx[1]>0)
-    {
-        //std::cout << "odpal 2";
-        vystup[1]=hodnotyx[1]*0.45f;
-    }
-    if(hodnotyx[2]>0)
-    {
-        //std::cout << "odpal 3";
-        vystup[2]=hodnotyx[2]*0.95f;
-    }
-return vystup[0]+vystup[1]+vystup[2];
-}
+*/
 
 void MainWindow::getChoosenObjectIndex(int row)
 {
@@ -442,51 +370,60 @@ void MainWindow::getChoosenObjectIndex(int row)
     qDebug() << choosenObjectIndex;
 }
 
-
-
-void MainWindow::keyPressEvent(QKeyEvent* event)
+/**
+ * Ovladanie pohybu robota Nao pomocou sipiek (hlava) a klaves WASD (chodza)
+ *
+ * @param QKeyEvent *event - TODO
+ */
+void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    setFocus();
-    qDebug() << event->key();
+  setFocus();
+  qDebug() << event->key();
 
-    //hlava
+  //hlava
 
-    if(event->key() == Qt::Key_Up)
-        motionProxy->post.changeAngles("HeadPitch", -0.1, 0.05f);
-    if(event->key() == Qt::Key_Down)
-        motionProxy->post.changeAngles("HeadPitch", 0.1, 0.05f);
-    if(event->key() == Qt::Key_Left)
-        motionProxy->post.changeAngles("HeadYaw", 0.1, 0.05f);
-    if(event->key() == Qt::Key_Right)
-        motionProxy->post.changeAngles("HeadYaw", -0.1, 0.05f);
+  switch (event->key())
+  {
+    case Qt::Key_Up:
+      motionProxy->post.changeAngles("HeadPitch", -0.1, 0.05);
+      break;
 
-    if(event->key() == Qt::Key_Q)
-        {
-            speed = 0;
-            theta = 0;
-        }
-    if(event->key() == Qt::Key_W)
-        {
-            if (speed < 1)
-                speed += 0.01f;
-        }
-    if(event->key() == Qt::Key_S)
-        {
-            if (speed >- 1)
-                speed -= 0.01f;
-        }
-   if(event->key() == Qt::Key_A)
-        {
-            if(theta < 1)
-                theta += 0.01f;
-        }
-   if(event->key() == Qt::Key_D)
-        {
-            if(theta >- 1)
-                theta -= 0.01f;
-        }
+    case Qt::Key_Down:
+      motionProxy->post.changeAngles("HeadPitch", 0.1, 0.05);
+      break;
 
-   motionProxy->post.setWalkTargetVelocity(speed,0,theta,0.5);
+    case Qt::Key_Left:
+      motionProxy->post.changeAngles("HeadYaw", 0.1, 0.05);
+      break;
+
+    case Qt::Key_Right:
+      motionProxy->post.changeAngles("HeadYaw", -0.1, 0.05);
+      break;
+
+    case Qt::Key_Q:
+      speed = 0;
+      theta = 0;
+      break;
+
+    case Qt::Key_W:
+      if (speed < 1) { speed += 0.05; }
+      break;
+
+    case Qt::Key_S:
+      if (speed >- 1) { speed -= 0.05; }
+      break;
+
+    case Qt::Key_A:
+      if (theta < 1) { theta += 0.05; }
+      break;
+
+    case Qt::Key_D:
+      if (theta >- 1) { theta -= 0.05; }
+      break;
+  }
+
+  std::cout << "theta: " << theta << "; speed: " << speed << std::endl;
+  motionProxy->post.setWalkTargetVelocity(speed, 0, theta, 0.5);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)

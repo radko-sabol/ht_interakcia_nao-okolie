@@ -31,7 +31,7 @@
   <property name="windowTitle">
    <string>Connect to Nao</string>
   </property>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="robotIP">
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -56,7 +56,7 @@
     <string>Robot IP</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
+  <widget class="QLabel" name="robotPort">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -69,10 +69,10 @@
     <string>Robot port</string>
    </property>
    <property name="buddy">
-    <cstring>lineEdit_2</cstring>
+    <cstring>PortLineEdit</cstring>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="defaultPort">
    <property name="geometry">
     <rect>
      <x>76</x>
@@ -94,7 +94,7 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="connectButton">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -122,7 +122,7 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="close_button">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -138,7 +138,7 @@
     <string>Close</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_2">
+  <widget class="QLineEdit" name="PortLineEdit">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -148,7 +148,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="IPComboBox">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -174,7 +174,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>pushButton_2</sender>
+   <sender>close_button</sender>
    <signal>clicked()</signal>
    <receiver>ConnectToNao</receiver>
    <slot>close()</slot>
@@ -190,9 +190,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBox</sender>
+   <sender>defaultPort</sender>
    <signal>toggled(bool)</signal>
-   <receiver>lineEdit_2</receiver>
+   <receiver>PortLineEdit</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">

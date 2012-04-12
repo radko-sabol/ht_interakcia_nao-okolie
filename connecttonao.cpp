@@ -9,11 +9,11 @@ ConnectToNao::ConnectToNao(QWidget *parent) : QWidget(parent), ui(new Ui::Connec
   robotIP = '\0';
   robotPort = '\0';
   ui->setupUi(this);
-  ui->comboBox->setFocus();
-  //ui->comboBox->addItem(""); // prazdna IP adresa
-  ui->comboBox->addItem("147.232.24.");
-  ui->comboBox->addItem("127.0.0.1"); // localhost - prijimanie video streamu z kamery v PC
-  ui->checkBox->setChecked(true); // default zaskrtnutie pouzitia predvoleneho portu
+  ui->IPComboBox->setFocus();
+  //ui->IPComboBox->addItem(""); // prazdna IP adresa
+  ui->IPComboBox->addItem("147.232.24.");
+  ui->IPComboBox->addItem("127.0.0.1"); // localhost - prijimanie video streamu z kamery v PC
+  ui->defaultPort->setChecked(true); // default zaskrtnutie pouzitia predvoleneho portu
 }
 
 /**
@@ -29,12 +29,12 @@ ConnectToNao::~ConnectToNao()
  *
  * @param const QString &IP - IP adresa
  */
-void ConnectToNao::on_comboBox_editTextChanged(const QString &IP)
+void ConnectToNao::on_IPComboBox_editTextChanged(const QString &IP)
 {
   robotIP = IP;
 
   qDebug() << "IP: " << robotIP;
-  ui->pushButton->setEnabled(isDataValid());
+  ui->connectButton->setEnabled(isDataValid());
 }
 
 /**
@@ -42,14 +42,14 @@ void ConnectToNao::on_comboBox_editTextChanged(const QString &IP)
  *
  * @param bool checked - boolean hodnota signalizujuca zaskrtnutie/odskrtnutie checkboxu
  */
-void ConnectToNao::on_checkBox_toggled(bool checked)
+void ConnectToNao::on_defaultPort_toggled(bool checked)
 {
   QString port;
   if (checked == true) { port = "9559"; }
   else                 { port = ""; }
 
   robotPort = port;
-  ui->lineEdit_2->setText(port);
+  ui->PortLineEdit->setText(port);
 
   qDebug() << robotPort;
 }
@@ -59,7 +59,7 @@ void ConnectToNao::on_checkBox_toggled(bool checked)
  *
  * @param const QString &port - port
  */
-void ConnectToNao::on_lineEdit_2_textEdited(const QString &port)
+void ConnectToNao::on_PortLineEdit_textEdited(const QString &port)
 {
   robotPort = port;
 
@@ -71,15 +71,15 @@ void ConnectToNao::on_lineEdit_2_textEdited(const QString &port)
  *
  * @param const QString &port - port
  */
-void ConnectToNao::on_lineEdit_2_textChanged(const QString &port)
+void ConnectToNao::on_PortLineEdit_textChanged(const QString &port)
 {
-  ui->pushButton->setEnabled(isDataValid());
+  ui->connectButton->setEnabled(isDataValid());
 }
 
 /**
  * Event handler zachytavajuci stlacenie tlacidla pripojenia na robota
  */
-void ConnectToNao::on_pushButton_pressed()
+void ConnectToNao::on_connectButton_pressed()
 {
   if (isDataValid()) // kontrola validnosti dat pred pokusom o pripojenie
   {
@@ -119,7 +119,7 @@ QValidator::State ConnectToNao::validate(QString &input) const
   {
     //qDebug() << "vkladam bodku";
     //ui->lineEdit->setText(ui->lineEdit->text() + ".");
-    ui->comboBox->setItemText(ui->comboBox->currentIndex(), ui->comboBox->currentText() + ".");
+    ui->IPComboBox->setItemText(ui->IPComboBox->currentIndex(), ui->IPComboBox->currentText() + ".");
     //ui->lineEdit->insert(".");
     //input.insert(input.length()-1, '.');
     //pos = input.length();
@@ -135,7 +135,7 @@ QValidator::State ConnectToNao::validate(QString &input) const
     //pos = input.length();
   }
 
-  input = ui->comboBox->currentText();
+  input = ui->IPComboBox->currentText();
   qDebug() << input;
 
   // match against needed regexp
@@ -151,6 +151,6 @@ QValidator::State ConnectToNao::validate(QString &input) const
 
 bool ConnectToNao::isDataValid()
 {
-  if ((validate(ui->comboBox->currentText()) == QValidator::Acceptable) && (ui->lineEdit_2->text() != "")) { return true; }
+  if ((validate(ui->IPComboBox->currentText()) == QValidator::Acceptable) && (ui->PortLineEdit->text() != "")) { return true; }
   else                                                                                                     { return false; }
 }

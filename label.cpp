@@ -2,12 +2,15 @@
 
 Label::Label(QWidget *parent): QLabel(parent)
 {
-
+    m_isNaoqiEnabled = false;
 }
 
 Label::~Label()
 {
-    delete motionProxy;
+    if(m_isNaoqiEnabled)
+    {
+        delete motionProxy;
+    }
 }
 
 void Label::mousePressEvent(QMouseEvent *event)
@@ -36,5 +39,6 @@ void Label::mouseMoveEvent(QMouseEvent *event)
 
 void Label::getMotionProxy(QString& IP, QString& port)
 {
+    m_isNaoqiEnabled = true;
     motionProxy = new AL::ALMotionProxy(IP.toStdString(), port.toInt());
 }

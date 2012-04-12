@@ -28,6 +28,8 @@ private:
     QPoint point;
     AL::ALMotionProxy *motionProxy;
 
+    bool m_isNaoqiEnabled;
+
 };
 
 #endif // LABEL_H

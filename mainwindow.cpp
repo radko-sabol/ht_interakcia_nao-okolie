@@ -9,17 +9,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->setupUi(this);
   captureRobotCam = 0;
   m_timer = new QTimer();
-  ui->listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-  ui->listWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui->haarCascadesListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui->haarCascadesListWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  ui->listWidget_2->setSelectionMode(QAbstractItemView::SingleSelection);
-  ui->listWidget_2->setSelectionBehavior(QAbstractItemView::SelectRows);
-  ui->listWidget_2->setSortingEnabled(true);
+  ui->findedObjectListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui->findedObjectListWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui->findedObjectListWidget->setSortingEnabled(true);
 
-  ui->comboBox->insertItem(none, QString("..."));
-  ui->comboBox->insertItem(haarDetection, QString("Haar"));
-  ui->comboBox->insertItem(circleDetection, QString("Circle"));
-  ui->comboBox->insertItem(squareDetection, QString("Square"));
+  ui->chooseDetectionComboBox->insertItem(none, QString("..."));
+  ui->chooseDetectionComboBox->insertItem(haarDetection, QString("Haar"));
+  ui->chooseDetectionComboBox->insertItem(circleDetection, QString("Circle"));
+  ui->chooseDetectionComboBox->insertItem(squareDetection, QString("Square"));
 
   m_haarCascadeLoaded = false;
   m_brokerConnection = false;
@@ -75,9 +75,9 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
     motionProxy = new AL::ALMotionProxy(robotIP, robotPort);
     behaviorProxy = new AL::ALBehaviorManagerProxy(robotIP, robotPort);
 
-    ui->label->getMotionProxy(IP, port);
+    ui->videoStreamLabel->getMotionProxy(IP, port);
 
-   //motionProxy->setStiffnesses("Body",1);
+   motionProxy->setStiffnesses("Body",1);
 
    // behaviorProxy->runBehavior("standUp");
    // behaviorProxy->runBehavior("Init");
@@ -87,16 +87,16 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
     behaviourNames = behaviorProxy->getInstalledBehaviors();
 
-    for (int i = 0; i < behaviourNames.size(); i++) { ui->listWidget_3->addItem(QString(behaviourNames[i].c_str())); }
+    for (unsigned int i = 0; i < behaviourNames.size(); i++) { ui->behaviorsListWidget->addItem(QString(behaviourNames[i].c_str())); }
 
     imageMain = cvCreateImage(cvSize(320, 240), 8, 3);
   }
 
   connect(m_timer, SIGNAL(timeout()), this, SLOT(imageProcessing()));
-  connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
-  connect(ui->listWidget_2,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
+  connect(ui->loadHaarCascadeButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
+  connect(ui->findedObjectListWidget,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
   //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
-  connect(ui->listWidget_3, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
+  connect(ui->behaviorsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
 
   m_timer->start(33);
 }
@@ -148,8 +148,8 @@ void MainWindow::getImage()
 void MainWindow::showImage()
 {
   QImage img = QImage((const unsigned char*)(imageMat.data), imageMat.cols, imageMat.rows, QImage::Format_RGB888);
-  ui->label->setPixmap(QPixmap::fromImage(img));
-  ui->label->resize(ui->label->pixmap()->size());
+  ui->videoStreamLabel->setPixmap(QPixmap::fromImage(img));
+  ui->videoStreamLabel->resize(ui->videoStreamLabel->pixmap()->size());
 }
 
 /**
@@ -205,7 +205,7 @@ void MainWindow::templateProcessing() // TODO: mne osobne tento nazov funkcie na
 {
   getXML();
   showTemplates();
-  connect(ui->listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(getItem(int)));
+  connect(ui->haarCascadesListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(getItem(int)));
 }
 
 /**
@@ -213,7 +213,7 @@ void MainWindow::templateProcessing() // TODO: mne osobne tento nazov funkcie na
  */
 void MainWindow::getXML()
 {
-  ui->listWidget->clear();
+  ui->haarCascadesListWidget->clear();
 
   XMLName.clear();
   XMLPath.clear();
@@ -234,7 +234,7 @@ void MainWindow::getXML()
       line.push_back(in.readLine());
   }
 
-  for(int i = 0; i < line.size(); i++)
+  for(unsigned int i = 0; i < line.size(); i++)
   {
     if((i % 2) == 0)
     {
@@ -252,9 +252,9 @@ void MainWindow::getXML()
  */
 void MainWindow::showTemplates()
 {
-  for (int i = 0; i < XMLName.size(); i++)
+  for (unsigned int i = 0; i < XMLName.size(); i++)
   {
-    ui->listWidget->addItem(XMLName[i]);
+    ui->haarCascadesListWidget->addItem(XMLName[i]);
   }
 }
 

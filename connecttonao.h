@@ -22,11 +22,11 @@ public:
   ~ConnectToNao();
     
 private slots:
-  void on_comboBox_editTextChanged(const QString &IP);
-  void on_lineEdit_2_textEdited(const QString &port);
-  void on_lineEdit_2_textChanged(const QString &port);
-  void on_checkBox_toggled(bool checked);
-  void on_pushButton_pressed();
+  void on_IPComboBox_editTextChanged(const QString &IP);
+  void on_PortLineEdit_textEdited(const QString &port);
+  void on_PortLineEdit_textChanged(const QString &port);
+  void on_defaultPort_toggled(bool checked);
+  void on_connectButton_pressed();
 
 private:
   MainWindow mainWindow;

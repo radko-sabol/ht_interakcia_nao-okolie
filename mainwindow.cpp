@@ -296,7 +296,7 @@ void MainWindow::behaviorProcessing(QListWidgetItem *item)
  *
  * @paramt int index - index zvolenej detekcie
  */
-void MainWindow::on_comboBox_activated(int index)
+void MainWindow::on_chooseDetectionComboBox_activated(int index)
 {
   qDebug() << index;
   m_selectedDetection = index;

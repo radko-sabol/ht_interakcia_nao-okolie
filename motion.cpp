@@ -7,69 +7,68 @@
  * @param int y - y_ova suradnica objektu v obraze
  * @param AL::ALMotionProxy& mp - Nao motion proxy 
  */
-void Motion::center(int x, int y, AL::ALMotionProxy& mp)
+void Motion::headCenter(int x, int y, AL::ALMotionProxy& mp)
 {
   //mp.setAngles("HeadYaw",0,0.05);
   //mp.setAngles("HeadPitch",0,0.05);
 
   //float a=0.5;
-  float b=0;
-  float theta=0;
-  float frequency=0.5;
- 
+  //float b=0;
+  //float theta=0;
+  //float frequency=0.5;
+  //char c; // nepouzita premenna
 
   float nchange_x = 0;
   float nchange_y = 0;
   float mnozina_x[3];
   float mnozina_y[3];
-  // vypocet vzialenosti objektu od stredu zorneho pola (v pixeloch)
+
   if (x < 160) { nchange_x = (float)(160 - x) / 160; }
   else         { nchange_x = (float)(x - 160) / 160; }
 
   if (y < 120) { nchange_y = (float)(120 - y) / 120; }
   else         { nchange_y = (float)(y - 120) / 120; }
-  // ziskanie mnozin funkcii prislusnosti k lingvistickym premennym
+
   funkciaPrislusnosti(mnozina_x, nchange_x);
   funkciaPrislusnosti(mnozina_y, nchange_y);
-  // vypocitana zmena uhlu hlavy robota
+
   float change_x = (float)(vyhodnoteniePravidiel(mnozina_x) * 0.1); // change in radian
   float change_y = (float)(vyhodnoteniePravidiel(mnozina_y) * 0.1); // pretypovavam lebo: motion.cpp:32: warning: C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
 
-  // ziskanie parametrov otocenia hlavy robota
-  std::vector<float> position_x = mp.getAngles("HeadYaw",true);	//useSensors ï¿½ If true, sensor angles will be returned
-  std::vector<float> position_y = mp.getAngles("HeadPitch",true);
-        
+  //double distance; // potrebne ku chodzi
+  //std::vector<float> position_x = mp.getAngles("HeadYaw", true);	//useSensors – If true, sensor angles will be returned
+  //std::vector<float> position_y = mp.getAngles("HeadPitch", true);
   //if ((position_x>-2)&&(position_x<2))
-  
-  double distance;
-  // vypocitana fitness vzialenosti robota od objektu
+
+  /*
+  // potrebne ku chodzi
   for (unsigned int i = 0; i < position_y.size(); i++)
   {
     distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
   }
+  */
 
-  std::cout << " vzdialenost: " << distance << std::endl; 
-  //vykonana zmena uhlu otocenia hlavy robota
-  if (x < 160) { mp.changeAngles("HeadYaw", change_x, 0.05f); }
-  else         { mp.changeAngles("HeadYaw", -change_x, 0.05f); }
+  //std::cout << " vzdialenost: " << distance << std::endl;
+  if (x < 160) { mp.changeAngles("HeadYaw", change_x, 0.05); }
+  else         { mp.changeAngles("HeadYaw", -change_x, 0.05); }
 
-  if (y < 120) { mp.changeAngles("HeadPitch", -change_y,0.05f); }
-  else         { mp.changeAngles("HeadPitch", change_y,0.05f); }
-  //normovanie vzdialenosti
+  if (y < 120) { mp.changeAngles("HeadPitch", -change_y,0.05); }
+  else         { mp.changeAngles("HeadPitch", change_y,0.05); }
+
+/*
+  // chodza
   float ndistance = (float)(distance * 2 - 0.6f);
-  //vypocet rychlosti cez fuzzy mnoziny
   float mnozina_d[3];
   funkciaPrislusnosti(mnozina_d,ndistance);
   float a = vyhodnoteniePravidiel(mnozina_d);
-  
   theta = position_x[0]/4;				//maximalna zmena 2
-  //vykonanie chodze
   if (distance > 0.31)
   {
     std::cout << "velkost kroku: " << a <<"theta: " <<theta <<std::endl;
     mp.post.setWalkTargetVelocity(a, b, theta, frequency);
   }
   else { mp.post.setWalkTargetVelocity(0, 0, 0, 0); }
+*/
 }
 
 /**

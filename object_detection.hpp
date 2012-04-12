@@ -16,7 +16,7 @@ class ObjectDetection
 {
   private:
     /** Suradnice najdenych objektov */
-    std::vector<std::vector<std::vector<cv::Scalar>>> m_objects;
+    std::vector< std::vector< std::vector<cv::Scalar> > > m_objects;
     cv::CascadeClassifier m_haarCascade;
 
     // square
@@ -34,8 +34,8 @@ class ObjectDetection
     void haarDetectObjects(cv::Mat image);
 
     // vykreslenie najdenych objektov
-    void ObjectDetection::drawDetectedObjects(cv::Mat &image);
+    void drawDetectedObjects(cv::Mat &image);
 
-    std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index);
+    std::vector< std::vector<cv::Scalar> > getObjects(int index);
     void clearObjects();
 };

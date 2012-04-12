@@ -303,7 +303,7 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
 /**
  *
  */
-std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index)
+std::vector< std::vector<cv::Scalar> > ObjectDetection::getObjects(int index)
 {
   return m_objects[index];
 }

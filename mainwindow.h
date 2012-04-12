@@ -61,7 +61,7 @@ private slots:
 
   void behaviorProcessing(QListWidgetItem *item);
 
-  void on_comboBox_activated(int index);
+  void on_chooseDetectionComboBox_activated(int index);
 
 private:
   void getImage();

@@ -8,6 +8,8 @@
 
 #include <alproxies/almotionproxy.h>
 
+#include "mainwindow.h"
+
 class Label : public QLabel
 {
 

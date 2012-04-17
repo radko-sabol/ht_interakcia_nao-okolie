@@ -36,10 +36,6 @@ class ObjectDetection
     // vykreslenie najdenych objektov
     void drawDetectedObjects(cv::Mat &image);
 
-<<<<<<< HEAD
-    std::vector<std::vector<cv::Scalar> > ObjectDetection::getObjects(int index);
-=======
     std::vector< std::vector<cv::Scalar> > getObjects(int index);
->>>>>>> 9949da25f1d91a08e386fd1fa7c33e2a321fb44a
     void clearObjects();
 };

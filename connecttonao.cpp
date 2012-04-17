@@ -1,6 +1,8 @@
 #include "connecttonao.h"
 #include "ui_connecttonao.h"
 
+// TODO: zmenit toolTip ak je connectButton v stave disabled
+
 /**
  * Konstruktor dialogoveho okna pre vyplnenie parametrov pripojenia na robota
  */
@@ -77,9 +79,9 @@ void ConnectToNao::on_PortLineEdit_textChanged(const QString &port)
 }
 
 /**
- * Event handler zachytavajuci stlacenie tlacidla pripojenia na robota
+ * Event handler zachytavajuci stlacenie tlacidla pripojenia na robota (pressed down then released while the mouse cursor is inside the button)
  */
-void ConnectToNao::on_connectButton_pressed()
+void ConnectToNao::on_connectButton_clicked()
 {
   if (isDataValid()) // kontrola validnosti dat pred pokusom o pripojenie
   {
@@ -152,5 +154,10 @@ QValidator::State ConnectToNao::validate(QString &input) const
 bool ConnectToNao::isDataValid()
 {
   if ((validate(ui->IPComboBox->currentText()) == QValidator::Acceptable) && (ui->PortLineEdit->text() != "")) { return true; }
-  else                                                                                                     { return false; }
+  else                                                                                                         { return false; }
+}
+
+void ConnectToNao::on_PortLineEdit_returnPressed()
+{
+    ui->connectButton->click();
 }

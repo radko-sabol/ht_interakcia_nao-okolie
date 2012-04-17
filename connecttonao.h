@@ -26,7 +26,9 @@ private slots:
   void on_PortLineEdit_textEdited(const QString &port);
   void on_PortLineEdit_textChanged(const QString &port);
   void on_defaultPort_toggled(bool checked);
-  void on_connectButton_pressed();
+  void on_connectButton_clicked();
+
+  void on_PortLineEdit_returnPressed();
 
 private:
   MainWindow mainWindow;
@@ -34,6 +36,7 @@ private:
   QString robotIP;
   QString robotPort;
   QValidator::State validate(QString &input) const;
+  //void pushConnectButton();
   bool isDataValid();
 };
 

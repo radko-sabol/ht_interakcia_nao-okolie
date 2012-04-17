@@ -32,7 +32,11 @@
 
 #include "label.h"
 #include "object_detection.hpp"
+<<<<<<< HEAD
 #include "behaviorthread.h"
+=======
+#include "motion.hpp"
+>>>>>>> 9949da25f1d91a08e386fd1fa7c33e2a321fb44a
 
 namespace Ui
 {
@@ -75,15 +79,6 @@ private:
 
   void getXML();
   void showTemplates();
-
-  void headCenter();
-  void headCenter(double x, double y);
-
-  void funkciaPrislusnosti(double *hodnoty, double hodnota);
-  void funkciaBlizsko(double *hodnoty, double hodnota);
-  void funkciaStredne(double *hodnoty, double hodnota);
-  void funkciaDaleko(double *hodnoty, double hodnota);
-  double vyhodnoteniePravidiel(const double *hodnotyx);
 
   Ui::MainWindow *ui;
   std::string robotIP;
@@ -130,7 +125,11 @@ private:
   };
 
   ObjectDetection objectDetection;
+<<<<<<< HEAD
   BehaviorThread behaviorThread;
+=======
+  Motion motion;
+>>>>>>> 9949da25f1d91a08e386fd1fa7c33e2a321fb44a
 };
 
 #endif // MAINWINDOW_H

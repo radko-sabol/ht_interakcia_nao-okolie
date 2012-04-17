@@ -38,9 +38,9 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
     */
 
     //std::cout << "najdeny kruh" << std::endl;
-    m_objects[1].resize(m_objects[1].size()+1);
-    m_objects[1][m_objects[1].size()-1].resize(1);
-    m_objects[1][m_objects[1].size()-1][0] = cv::Scalar(circles[i][0], circles[i][1], circles[i][2], 0);
+    m_objects[2].resize(m_objects[2].size()+1);
+    m_objects[2][m_objects[2].size()-1].resize(1);
+    m_objects[2][m_objects[2].size()-1][0] = cv::Scalar(circles[i][0], circles[i][1], circles[i][2], 0);
   }
 
   //cv::imshow( "circless", img );
@@ -178,7 +178,7 @@ void ObjectDetection::squareDetectObjects(const cv::Mat &image)
           { 
             //std::cout << "najdeny stvorec" << std::endl;
             //squares.push_back(approx);
-            m_objects[2].push_back(approxS);
+            m_objects[3].push_back(approxS);
           }
         }
       }
@@ -219,9 +219,9 @@ void ObjectDetection::haarDetectObjects(cv::Mat image)
 
   for (size_t i = 0; i < foundObjects.size(); i++)
   {
-    m_objects[0].resize(m_objects[0].size()+1); // alokacia miesta pre najdeny objekt
-    m_objects[0][m_objects[0].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
-    m_objects[0][m_objects[0].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
+    m_objects[1].resize(m_objects[1].size()+1); // alokacia miesta pre najdeny objekt
+    m_objects[1][m_objects[1].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
+    m_objects[1][m_objects[1].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
   }
 }
 
@@ -236,7 +236,7 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
   {
     for (size_t j = 0; j < m_objects[i].size(); j++) // najdene objekty
     {
-      if (i == 0) // detegovany haar objekt
+      if (i == 1) // detegovany haar objekt
       {
         cv::rectangle(imageMat, cv::Point(m_objects[i][j][0][0], m_objects[i][j][0][1]), cv::Point(m_objects[i][j][0][0] + m_objects[i][j][0][2], m_objects[i][j][0][1] + m_objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
         cv::Point center(m_objects[i][j][0][0] + m_objects[i][j][0][2]*0.5, m_objects[i][j][0][1] + m_objects[i][j][0][3]*0.5);
@@ -252,7 +252,7 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
           
       }
 
-      if (i == 1) // detegovany kruh
+      if (i == 2) // detegovany kruh
       {
         cv::Point circleCenter(cvRound(m_objects[i][j][0][0]), cvRound(m_objects[i][j][0][1]));
         int circleRadius = cvRound(m_objects[i][j][0][2]);
@@ -260,7 +260,7 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
         cv::circle(imageMat, circleCenter, circleRadius, cv::Scalar(0, 0, 255), 3, 8, 0);
       }
 
-      if (i == 2) // detegovany stvorec
+      if (i == 3) // detegovany stvorec
       {
         const cv::Scalar p1 = m_objects[i][j][0];
         const cv::Scalar p2 = m_objects[i][j][1];
@@ -303,9 +303,16 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
 /**
  *
  */
-std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index)
+std::vector< std::vector<cv::Scalar> > ObjectDetection::getObjects(int index)
 {
-  return m_objects[index];
+  if ((index < 0) || (index > m_objects.size()-1))
+  {
+    return m_objects[0];
+  }
+  else
+  {
+    return m_objects[index];
+  }
 }
 
 /**
@@ -314,5 +321,5 @@ std::vector<std::vector<cv::Scalar>> ObjectDetection::getObjects(int index)
 void ObjectDetection::clearObjects()
 {
     m_objects.clear();
-    m_objects.resize(3);
+    m_objects.resize(4);
 }

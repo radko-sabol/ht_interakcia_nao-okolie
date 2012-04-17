@@ -307,7 +307,14 @@ void MainWindow::motionProcessing()
 void MainWindow::behaviorProcessing(QListWidgetItem *item)
 {
     QString behaviourName = item->text();
-    behaviorProxy->runBehavior(behaviourName.toStdString());
+    behaviorThread.setBehaviorProxy(robotIP, robotPort);
+    behaviorThread.setSelectedBehavior(behaviourName.toStdString());
+    behaviorThread.start(QThread::HighPriority);
+    std::vector<std::string> runBehavior = behaviorProxy->getRunningBehaviors();
+    if(runBehavior.empty() == true)
+        behaviorThread.quit();
+    //behaviorProxy->runBehavior(behaviourName.toStdString());
+
 }
 
 /**

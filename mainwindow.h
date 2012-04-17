@@ -32,7 +32,11 @@
 
 #include "label.h"
 #include "object_detection.hpp"
+<<<<<<< HEAD
+#include "behaviorthread.h"
+=======
 #include "motion.hpp"
+>>>>>>> 9949da25f1d91a08e386fd1fa7c33e2a321fb44a
 
 namespace Ui
 {
@@ -121,7 +125,11 @@ private:
   };
 
   ObjectDetection objectDetection;
+<<<<<<< HEAD
+  BehaviorThread behaviorThread;
+=======
   Motion motion;
+>>>>>>> 9949da25f1d91a08e386fd1fa7c33e2a321fb44a
 };
 
 #endif // MAINWINDOW_H

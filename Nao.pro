@@ -18,14 +18,22 @@ SOURCES += main.cpp\
            label.cpp \
            object_detection.cpp \
            motion.cpp \
+<<<<<<< HEAD
            connecttonao_ipcombobox.cpp
+=======
+    behaviorthread.cpp
+>>>>>>> 51f6c79517ee7efb4e513966c114fd888ce336da
 
 HEADERS += mainwindow.h \
            connecttonao.h \
            label.h \
            object_detection.hpp \
            motion.hpp \
+<<<<<<< HEAD
            connecttonao_ipcombobox.hpp
+=======
+    behaviorthread.h
+>>>>>>> 51f6c79517ee7efb4e513966c114fd888ce336da
 
 FORMS += mainwindow.ui \
          connecttonao.ui

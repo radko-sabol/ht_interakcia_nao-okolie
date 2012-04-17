@@ -6,6 +6,8 @@
 
 QT += core gui
 
+#CONFIG += release
+
 TARGET = Nao
 TEMPLATE = app
 
@@ -15,20 +17,22 @@ SOURCES += main.cpp\
            connecttonao.cpp \
            label.cpp \
            object_detection.cpp \
-           motion.cpp
+           motion.cpp \
+           connecttonao_ipcombobox.cpp
 
 HEADERS += mainwindow.h \
            connecttonao.h \
            label.h \
            object_detection.hpp \
-           motion.hpp
+           motion.hpp \
+           connecttonao_ipcombobox.hpp
 
 FORMS += mainwindow.ui \
          connecttonao.ui
 
 INCLUDEPATH += $(ALDEBARAN_SDK)/include
 
-LIBS += -L$(ALDEBARAN_SDK)/lib/ \
+Debug:LIBS += -L$(ALDEBARAN_SDK)/lib/ \
         -lalvision_d \
         -lcv200d \
         -lcvaux200d \
@@ -53,3 +57,29 @@ LIBS += -L$(ALDEBARAN_SDK)/lib/ \
         -llibboost_thread-vc100-mt-gd-1_44 \
         -llibboost_date_time-vc100-mt-gd-1_44 \
         -lzmq_d
+
+Release:LIBS += -L$(ALDEBARAN_SDK)/lib/ \
+        -lalvision \
+        -lcv200 \
+        -lcvaux200 \
+        -lcxcore200 \
+        -lhighgui200 \
+        -lml200 \
+        -lalextractor \
+        -lalcommon \
+        -lalsoap \
+        -lalvalue \
+        -ltinyxml \
+        -lrttools \
+        -lalthread \
+        -lalerror \
+        -lpthreadVCE2 \
+        -llibboost_signals-vc100-mt-1_44 \
+        -llibboost_program_options-vc100-mt-1_44 \
+        -lallogremote \
+        -lqi \
+        -llibboost_filesystem-vc100-mt-1_44 \
+        -llibboost_system-vc100-mt-1_44 \
+        -llibboost_thread-vc100-mt-1_44 \
+        -llibboost_date_time-vc100-mt-1_44 \
+        -lzmq

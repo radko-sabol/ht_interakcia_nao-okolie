@@ -32,6 +32,7 @@
 
 #include "label.h"
 #include "object_detection.hpp"
+#include "behaviorthread.h"
 
 namespace Ui
 {
@@ -129,6 +130,7 @@ private:
   };
 
   ObjectDetection objectDetection;
+  BehaviorThread behaviorThread;
 };
 
 #endif // MAINWINDOW_H

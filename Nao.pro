@@ -15,13 +15,15 @@ SOURCES += main.cpp\
            connecttonao.cpp \
            label.cpp \
            object_detection.cpp \
-           motion.cpp
+           motion.cpp \
+    behaviorthread.cpp
 
 HEADERS += mainwindow.h \
            connecttonao.h \
            label.h \
            object_detection.hpp \
-           motion.hpp
+           motion.hpp \
+    behaviorthread.h
 
 FORMS += mainwindow.ui \
          connecttonao.ui

@@ -14,7 +14,7 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
   cv::Mat gray, gray2, imageHSV;
   //cvtColor(img, gray, CV_BGR2GRAY);
   cv::cvtColor(img, imageHSV, CV_BGR2HSV);
-  cv::inRange(imageHSV, cv::Scalar(0, 50, 170, 0), cv::Scalar(10, 180, 256, 0), gray); // prahovanie jednym rozsahom farieb
+  cv::inRange(imageHSV, cv::Scalar(5, 90, 90, 0), cv::Scalar(40, 180, 130, 0), gray); // prahovanie jednym rozsahom farieb
   cv::inRange(imageHSV, cv::Scalar(170, 50, 170, 0), cv::Scalar(256, 180, 256, 0), gray2); // prahovanie druhym rozsahom farieb
   cv::bitwise_or(gray, gray2, gray); // spojenie prahovanych obrazov
   // smooth it, otherwise a lot of false circles may be detected
@@ -274,19 +274,19 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
         std::cout << "P4 - X: " << p4[0] << " ;Y: " << p4[1] << " ;?: " << p4[2] << " ;?: " << p4[3] << std::endl;
         */
 
-        /*
         // Vypocet stredoveho bodu
         int x = 0,
             y = 0;
 
-        x = ((squares[i][0].x + squares[i][2].x)/2 + (squares[i][1].x + squares[i][3].x)/2) / 2;
-        y = ((squares[i][0].y + squares[i][2].y)/2 + (squares[i][1].y + squares[i][3].y)/2) / 2;
+        x = ((p1[0] + p3[0])/2 + (p2[0] + p4[0])/2) / 2;
+        y = ((p1[1] + p3[1])/2 + (p2[1] + p4[1])/2) / 2;
 
+        /*
         cv::circle(image, cv::Point(squares[i][0].x, squares[i][0].y), 2, cv::Scalar(0, 0, 255), 1);
         //cv::circle(image, cv::Point(squares[i][1].x, squares[i][1].y), 2, cv::Scalar(255, 0, 0), 1);
         cv::circle(image, cv::Point(squares[i][2].x, squares[i][2].y), 2, cv::Scalar(255, 0, 255), 1);
-        cv::circle(image, cv::Point(x, y), 2, cv::Scalar(255, 0, 0), 1);
         */
+        cv::circle(imageMat, cv::Point(x, y), 2, cv::Scalar(0, 255, 0), 1);
 
         cv::line(imageMat, cv::Point(p1[0], p1[1]), cv::Point(p2[0], p2[1]), cv::Scalar(255, 0, 0), 2);
         cv::line(imageMat, cv::Point(p2[0], p2[1]), cv::Point(p3[0], p3[1]), cv::Scalar(255, 0, 0), 2);

@@ -11,9 +11,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
   ui->haarCascadesListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
   ui->haarCascadesListWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  ui->findedObjectListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-  ui->findedObjectListWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-  ui->findedObjectListWidget->setSortingEnabled(true);
+  ui->foundObjectListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui->foundObjectListWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui->foundObjectListWidget->setSortingEnabled(true);
 
   ui->chooseDetectionComboBox->insertItem(none, QString("..."));
   ui->chooseDetectionComboBox->insertItem(haarDetection, QString("Haar"));
@@ -95,7 +95,7 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
   connect(m_timer, SIGNAL(timeout()), this, SLOT(imageProcessing()));
   connect(ui->loadHaarCascadeButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
-  connect(ui->findedObjectListWidget,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
+  connect(ui->foundObjectListWidget,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
   //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
   connect(ui->behaviorsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
 
@@ -107,12 +107,26 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
  */
 void MainWindow::imageProcessing()
 {
+  QString foundObjects;
+  cv::Point center;
+  ui->foundObjectListWidget->clear();
+
   getImage(); // ziskanie obrazu z kamery do premennej imageMat
 
   findObjectsInImage(); // vykonanie pozadovaneho sposobu detekcie objektov v obraze imageMat
 
-  // vycentrovanie hlavy na stred objektu ak robot vidi len jeden objekt (zatial len testovanie na haar detekcii)
   std::vector< std::vector<cv::Scalar> > detectedObjects = objectDetection.getObjects(m_selectedDetection);
+
+  for (unsigned int i = 0; i < detectedObjects.size(); i++)
+  {
+    if (m_selectedDetection == haarDetection)        { center = cv::Point(detectedObjects[i][0][0] + detectedObjects[i][0][2]*0.5, detectedObjects[i][0][1] + detectedObjects[i][0][3]*0.5); }
+    else if (m_selectedDetection == circleDetection) { center = cv::Point(detectedObjects[i][0][0], detectedObjects[i][0][1]); }
+    else if (m_selectedDetection == squareDetection) { center = cv::Point((((detectedObjects[i][0][0] + detectedObjects[i][2][0])/2 + (detectedObjects[i][1][0] + detectedObjects[i][3][0])/2) / 2), (((detectedObjects[i][0][1] + detectedObjects[i][2][1])/2 + (detectedObjects[i][1][1] + detectedObjects[i][3][1])/2) / 2)); }
+    foundObjects = QString("[%1] X: %2; Y: %3").arg(i+1).arg(center.x).arg(center.y);
+    ui->foundObjectListWidget->addItem(foundObjects);
+  }
+
+  // vycentrovanie hlavy na stred objektu ak robot vidi len jeden objekt (zatial len testovanie na haar detekcii)
   if (detectedObjects.size() == 1)
   {
     if (m_selectedDetection == haarDetection) // haar
@@ -131,12 +145,6 @@ void MainWindow::imageProcessing()
   markObjectsInImage(); // zakreslenie najdenych objektov v obraze imageMat
 
   showImage(); // vykreslenie obrazu do GUI
-/*
-    if (templateStatus == true)
-    {
-        drawTemplate();
-    }
-*/
 }
 
 /**
@@ -149,14 +157,12 @@ void MainWindow::getImage()
     captureRobotCam = camProxy->getImageRemote(clientName);
     cvSetData(imageMain, (char*)captureRobotCam[6].GetBinary(), 960);
 
-    cvCvtColor(imageMain, imageMain, CV_BGR2RGB); // zmena z BGR na RGB farebny priestor
     imageMat = cv::Mat(imageMain);
   }
   else
   {
     cv::Mat image; // pomocna premenna z dovodu, ze resize obrazu jednej premennej (ako vstupnej aj vystupnej) nefunguje korektne
     cap >> image;
-    cv::cvtColor(image, image, CV_BGR2RGB); // zmena z BGR na RGB farebny priestor
     cv::resize(image, imageMat, cv::Size(320, 240), 0, 0, CV_INTER_LINEAR); // zmen velkosti obrazu na 320x240
   }
 }
@@ -166,6 +172,7 @@ void MainWindow::getImage()
  */
 void MainWindow::showImage()
 {
+  cv::cvtColor(imageMat, imageMat, CV_BGR2RGB); // zmena z BGR na RGB farebny priestor
   QImage img = QImage((const unsigned char*)(imageMat.data), imageMat.cols, imageMat.rows, QImage::Format_RGB888);
   ui->videoStreamLabel->setPixmap(QPixmap::fromImage(img));
   ui->videoStreamLabel->resize(ui->videoStreamLabel->pixmap()->size());

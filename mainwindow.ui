@@ -474,7 +474,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QListWidget" name="findedObjectListWidget">
+   <widget class="QListWidget" name="foundObjectListWidget">
     <property name="geometry">
      <rect>
       <x>50</x>

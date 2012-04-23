@@ -18,16 +18,16 @@ SOURCES += main.cpp\
            label.cpp \
            object_detection.cpp \
            motion.cpp \
-#           connecttonao_ipcombobox.cpp \
-           behaviorthread.cpp
+           connecttonao_ipcombobox.cpp \
+           behaviorthread.cpp \
 
 HEADERS += mainwindow.h \
            connecttonao.h \
            label.h \
            object_detection.hpp \
            motion.hpp \
-#           connecttonao_ipcombobox.hpp \
-           behaviorthread.h
+           connecttonao_ipcombobox.hpp \
+           behaviorthread.h \
 
 FORMS += mainwindow.ui \
          connecttonao.ui

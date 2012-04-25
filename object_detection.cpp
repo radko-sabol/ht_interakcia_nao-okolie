@@ -210,6 +210,11 @@ boolean ObjectDetection::loadHaarObjectDetector(std::string cascadePath)
 void ObjectDetection::haarDetectObjects(cv::Mat image)
 {
   std::vector<cv::Rect> foundObjects;
+  std::vector<cv::Point> foundObjectsCenter;
+  cv::Point center;
+  bool validObject;
+  unsigned int x_treshold = 10,
+               y_treshold = 10;
   cv::Mat imageGray;
 
   cv::cvtColor(image, imageGray, CV_BGR2GRAY);
@@ -219,9 +224,27 @@ void ObjectDetection::haarDetectObjects(cv::Mat image)
 
   for (size_t i = 0; i < foundObjects.size(); i++)
   {
-    m_objects[1].resize(m_objects[1].size()+1); // alokacia miesta pre najdeny objekt
-    m_objects[1][m_objects[1].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
-    m_objects[1][m_objects[1].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
+    /*
+    m_objects[2].resize(m_objects[2].size()+1); // alokacia miesta pre najdeny objekt
+    m_objects[2][m_objects[2].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
+    m_objects[2][m_objects[2].size()-1][0] = cv::Scalar(foundObjects[i].x+foundObjects[i].width*0.5, foundObjects[i].y+foundObjects[i].height*0.5, foundObjects[i].width/2);
+    */
+    validObject = true;
+    center = cv::Point((foundObjects[i].x + (foundObjects[i].width * 0.5)), (foundObjects[i].y + (foundObjects[i].height * 0.5)));
+    for (size_t j = 0; j < foundObjectsCenter.size(); j++)
+    {
+      if (((abs(foundObjectsCenter[j].x - center.x) < x_treshold) || (abs(foundObjectsCenter[j].y - center.y) < y_treshold)) && (validObject))
+      {
+        validObject = false;
+      }
+    }
+    if (validObject)
+    {
+      foundObjectsCenter.push_back(center);
+      m_objects[1].resize(m_objects[1].size()+1); // alokacia miesta pre najdeny objekt
+      m_objects[1][m_objects[1].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
+      m_objects[1][m_objects[1].size()-1][0] = cv::Scalar(foundObjects[i].x, foundObjects[i].y, foundObjects[i].width, foundObjects[i].height);
+    }
   }
 }
 

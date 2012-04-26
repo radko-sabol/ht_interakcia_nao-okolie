@@ -18,8 +18,10 @@ public:
 protected:
   void keyPressEvent(QKeyEvent *event);
 
+signals:
+    void enterPressed();
+
 private:
-  //ConnectToNao connectToNao; // TODO: toto robi nejaky problem...
 };
 
 #endif // CONNECTTONAO_IPCOMBOBOX_HPP

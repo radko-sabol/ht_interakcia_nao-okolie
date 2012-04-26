@@ -148,7 +148,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QComboBox" name="IPComboBox">
+  <widget class="ConnectToNao_IPComboBox" name="IPComboBox">
    <property name="geometry">
     <rect>
      <x>80</x>
@@ -171,6 +171,13 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ConnectToNao_IPComboBox</class>
+   <extends>QComboBox</extends>
+   <header>connecttonao_ipcombobox.hpp</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>IPComboBox</tabstop>
   <tabstop>defaultPort</tabstop>

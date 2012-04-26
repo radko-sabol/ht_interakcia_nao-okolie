@@ -14,6 +14,7 @@ void ConnectToNao_IPComboBox::keyPressEvent(QKeyEvent* event)
     std::cout << "ENTER" << std::endl;
     // accept enter/return events so they won't
     // be ever propagated to the parent dialog..
+    emit enterPressed();
     event->accept();
     //connectToNao.
   }

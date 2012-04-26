@@ -16,6 +16,8 @@ ConnectToNao::ConnectToNao(QWidget *parent) : QWidget(parent), ui(new Ui::Connec
   ui->IPComboBox->addItem("147.232.24.");
   ui->IPComboBox->addItem("127.0.0.1"); // localhost - prijimanie video streamu z kamery v PC
   ui->defaultPort->setChecked(true); // default zaskrtnutie pouzitia predvoleneho portu
+
+  connect(ui->IPComboBox,SIGNAL(enterPressed()),this, SLOT(on_connectButton_clicked()));
 }
 
 /**

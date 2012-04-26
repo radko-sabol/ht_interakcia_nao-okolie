@@ -41,8 +41,8 @@ void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
 
 }
 
- void Motion::walkToObject(AL::ALMotionProxy &mp)
- {
+void Motion::walkToObject(AL::ALMotionProxy &mp)
+{
      float b=0;
      float theta=0;
      float frequency=0.5;
@@ -66,7 +66,12 @@ void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
          mp.post.setWalkTargetVelocity(a, b, theta, frequency);
       }
       else { mp.post.setWalkTargetVelocity(0, 0, 0, 0); }
- }
+}
+
+void Motion::stopWalking(AL::ALMotionProxy &mp)
+{
+  mp.post.setWalkTargetVelocity(0, 0, 0, 0);
+}
 
 /**
  * Priradenie funkcii prislusnosti k lingvistickym premennym

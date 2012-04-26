@@ -147,6 +147,17 @@ void MainWindow::imageProcessing()
       //detectedObjects[0][0][2] // width
       //detectedObjects[0][0][3] // height
     }
+    else if (m_selectedDetection == circleDetection) // circle
+    {
+      int x = (detectedObjects[0][0][0]),
+          y = (detectedObjects[0][0][1]);
+      motion.headCenter(x, y, *motionProxy);
+      motion.walkToObject(*motionProxy);
+    }
+  }
+  else if (detectedObjects.size() == 0)
+  {
+    motion.stopWalking(*motionProxy);
   }
 
   //std::cout << "[" << m_selectedDetection << "] najdenych objektov: " << (detectedObjects.size()) << std::endl;

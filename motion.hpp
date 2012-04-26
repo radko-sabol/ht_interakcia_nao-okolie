@@ -10,6 +10,7 @@ class Motion
 public:
   void headCenter(int x, int y, AL::ALMotionProxy &mp);
   void walkToObject(AL::ALMotionProxy &mp);
+  void stopWalking(AL::ALMotionProxy &mp);
 
 private:
 

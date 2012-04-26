@@ -49,7 +49,7 @@ MainWindow::~MainWindow()
     }
     else
     {
-      QMessageBox::critical(this, "Missing behavior", "The behavior \"sitDown\" is missing.\nStiffness will be turned off - hold the robot.", QMessageBox::Ok, QMessageBox::Ok);
+      QMessageBox::warning(this, "Missing behavior", "The behavior \"sitDown\" is missing.\nStiffness will be turned off - hold the robot.", QMessageBox::Ok, QMessageBox::Ok);
       motionProxy->setStiffnesses("Body", 0);
     }
     delete behaviorProxy;

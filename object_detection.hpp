@@ -20,7 +20,7 @@ class ObjectDetection
     cv::CascadeClassifier m_haarCascade;
 
     // square
-    double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0 );
+    double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
 
   public:
     // circle

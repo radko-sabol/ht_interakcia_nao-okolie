@@ -4,6 +4,39 @@
 
 #include "object_detection.hpp"
 
+void onMouseClick(int event, int x, int y, int flags, void *param)
+{
+  IplImage* image = (IplImage*) param;
+  //std::cout << "x:" << x << "; y:" << y << "; height:" << image->height << "; width:" << image->width << std::endl;
+  if (event == CV_EVENT_LBUTTONDOWN)
+  {
+    std::cout << "PRESS" << std::endl;
+    std::cout << "x:" << x << "; y:" << y << "; height:" << image->height << "; width:" << image->width << std::endl;
+    CvScalar s = cvGet2D(image, y, x);
+    //CvScalar s;
+    //s = cvGetAt(image, y, x); //row i, column j
+    //std::cout << "H:" << s.val[0] << "; S:" << s.val[1] << "; V:" << s.val[2] << std::endl;
+    /*
+    std::cout << "H:" << hsv_min_h << "; S:" << hsv_min_s << "; V:" << hsv_min_v << std::endl;
+    hsv_min_h = min(hsv_min_h, s.val[0]);
+    hsv_min_s = min(hsv_min_s, s.val[1]);
+    hsv_min_v = min(hsv_min_v, s.val[2]);
+    */
+  }
+  else if (event == CV_EVENT_RBUTTONDOWN)
+  {
+    //CvScalar s = cvGet2D(image, x, y);
+    std::cout << "PRESS" << std::endl;
+    //std::cout << "H:" << s.val[0] << "; S:" << s.val[1] << "; V:" << s.val[2] << std::endl;
+    /*
+    std::cout << "H:" << hsv_max_h << "; S:" << hsv_max_s << "; V:" << hsv_max_v << std::endl;
+    hsv_max_h = max(hsv_max_h, s.val[0]);
+    hsv_max_s = max(hsv_max_s, s.val[1]);
+    hsv_max_v = max(hsv_max_v, s.val[2]);
+    */
+  }
+}
+
 /**
  * Detekcia kruhov v obraze
  *
@@ -14,9 +47,18 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
   cv::Mat gray, gray2, imageHSV;
   //cvtColor(img, gray, CV_BGR2GRAY);
   cv::cvtColor(img, imageHSV, CV_BGR2HSV);
-  cv::inRange(imageHSV, cv::Scalar(5, 90, 90, 0), cv::Scalar(40, 180, 130, 0), gray); // prahovanie jednym rozsahom farieb
-  cv::inRange(imageHSV, cv::Scalar(170, 50, 170, 0), cv::Scalar(256, 180, 256, 0), gray2); // prahovanie druhym rozsahom farieb
-  cv::bitwise_or(gray, gray2, gray); // spojenie prahovanych obrazov
+  cv::GaussianBlur(imageHSV, imageHSV, cv::Size(5, 5), 1, 1);
+
+  cv::imshow("Video ball treshold help", imageHSV);
+  IplImage* ipl_img = new IplImage(imageHSV);
+  cvSetMouseCallback("Video ball treshold help", onMouseClick, (void*) ipl_img);
+
+  cv::inRange(imageHSV, cv::Scalar(1, 60, 100, 0), cv::Scalar(40, 227, 280, 0), gray); // prahovanie jednym rozsahom farieb
+  //cv::inRange(imageHSV, cv::Scalar(170, 50, 170, 0), cv::Scalar(256, 180, 256, 0), gray2); // prahovanie druhym rozsahom farieb
+  //cv::bitwise_or(gray, gray2, gray); // spojenie prahovanych obrazov
+
+  cv::imshow("prahovane", gray);
+
   // smooth it, otherwise a lot of false circles may be detected
   cv::GaussianBlur(gray, gray, cv::Size(9, 9), 1, 1);
   cv::Canny(gray, gray, 1, 3);
@@ -24,11 +66,12 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
   //HoughCircles(gray, circles, CV_HOUGH_GRADIENT,
   //             2, gray.rows/4, 200, 100 );
 
-  cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 2, gray.rows/4, 200, 100, 5, 50);
+  cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 2, gray.rows/2, 100, 100, 7, 20);
   for (size_t i = 0; i < circles.size(); i++)
   {
-    /*
+
     std::cout << circles[i][2] << std::endl; // radius
+    /*
     cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
     int radius = cvRound(circles[i][2]);
     // draw the circle center
@@ -44,7 +87,7 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
   }
 
   //cv::imshow( "circless", img );
-  //cv::imshow( "circles", gray );
+  cv::imshow("po detekcii", gray);
 }
 
 

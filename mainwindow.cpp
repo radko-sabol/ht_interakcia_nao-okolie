@@ -80,8 +80,8 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
     motionProxy->setStiffnesses("Body", 1);
 
-    //behaviorProxy->runBehavior("standUp");
-    //behaviorProxy->runBehavior("Init");
+    behaviorProxy->runBehavior("standUp");
+    behaviorProxy->runBehavior("Init");
 
     camProxy->setParam(AL::kCameraSelectID, 1); // 0 - horna kamera; 1 - dolna kamera
     clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
@@ -134,6 +134,7 @@ void MainWindow::imageProcessing()
       int x = (detectedObjects[0][0][0] + (detectedObjects[0][0][2] * 0.5)),
           y = (detectedObjects[0][0][1] + (detectedObjects[0][0][3] * 0.5));
       motion.headCenter(x, y, *motionProxy);
+      motion.walkToObject(*motionProxy);
       //detectedObjects[0][0][0] // x
       //detectedObjects[0][0][1] // y
       //detectedObjects[0][0][2] // width

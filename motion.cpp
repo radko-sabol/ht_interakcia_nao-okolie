@@ -12,12 +12,6 @@ void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
   //mp.setAngles("HeadYaw",0,0.05);
   //mp.setAngles("HeadPitch",0,0.05);
 
-  //float a=0.5;
-  //float b=0;
-  //float theta=0;
-  //float frequency=0.5;
-  //char c; // nepouzita premenna
-
   float nchange_x = 0;
   float nchange_y = 0;
   float mnozina_x[3];
@@ -35,18 +29,7 @@ void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
   float change_x = (float)(vyhodnoteniePravidiel(mnozina_x) * 0.1); // change in radian
   float change_y = (float)(vyhodnoteniePravidiel(mnozina_y) * 0.1); // pretypovavam lebo: motion.cpp:32: warning: C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
 
-  //double distance; // potrebne ku chodzi
-  //std::vector<float> position_x = mp.getAngles("HeadYaw", true);	//useSensors – If true, sensor angles will be returned
-  //std::vector<float> position_y = mp.getAngles("HeadPitch", true);
-  //if ((position_x>-2)&&(position_x<2))
 
-  /*
-  // potrebne ku chodzi
-  for (unsigned int i = 0; i < position_y.size(); i++)
-  {
-    distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
-  }
-  */
 
   //std::cout << " vzdialenost: " << distance << std::endl;
   if (x < 160) { mp.changeAngles("HeadYaw", change_x, 0.05); }
@@ -55,21 +38,35 @@ void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
   if (y < 120) { mp.changeAngles("HeadPitch", -change_y,0.05); }
   else         { mp.changeAngles("HeadPitch", change_y,0.05); }
 
-/*
-  // chodza
-  float ndistance = (float)(distance * 2 - 0.6f);
-  float mnozina_d[3];
-  funkciaPrislusnosti(mnozina_d,ndistance);
-  float a = vyhodnoteniePravidiel(mnozina_d);
-  theta = position_x[0]/4;				//maximalna zmena 2
-  if (distance > 0.31)
-  {
-    std::cout << "velkost kroku: " << a <<"theta: " <<theta <<std::endl;
-    mp.post.setWalkTargetVelocity(a, b, theta, frequency);
-  }
-  else { mp.post.setWalkTargetVelocity(0, 0, 0, 0); }
-*/
+
 }
+
+ void Motion::walkToObject(AL::ALMotionProxy &mp)
+ {
+     float b=0;
+     float theta=0;
+     float frequency=0.5;
+     double distance; // potrebne ku chodzi
+     std::vector<float> position_x = mp.getAngles("HeadYaw", true);	//useSensors – If true, sensor angles will be returned
+     std::vector<float> position_y = mp.getAngles("HeadPitch", true);
+     for (unsigned int i = 0; i < position_y.size(); i++)
+     {
+         distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
+     }
+
+      // chodza
+      float ndistance = (float)(distance * 2 - 0.6f);
+      float mnozina_d[3];
+      funkciaPrislusnosti(mnozina_d,ndistance);
+      float a = vyhodnoteniePravidiel(mnozina_d);
+      theta = position_x[0]/4;				//maximalna zmena 2
+      if (distance > 0.31)
+      {
+         std::cout << "velkost kroku: " << a <<"theta: " <<theta <<std::endl;
+         mp.post.setWalkTargetVelocity(a, b, theta, frequency);
+      }
+      else { mp.post.setWalkTargetVelocity(0, 0, 0, 0); }
+ }
 
 /**
  * Priradenie funkcii prislusnosti k lingvistickym premennym

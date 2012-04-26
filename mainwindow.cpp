@@ -42,9 +42,17 @@ MainWindow::~MainWindow()
     delete textToSpeech;
     camProxy->unsubscribe(clientName);
     delete camProxy;
-    behaviorProxy->runBehavior("sitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
+    if (behaviorProxy->isBehaviorInstalled("sitDown"))
+    {
+      behaviorProxy->runBehavior("sitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
+      motionProxy->setStiffnesses("Body", 0);
+    }
+    else
+    {
+      QMessageBox::critical(this, "Missing behavior", "The behavior \"sitDown\" is missing.\nStiffness will be turned off - hold the robot.", QMessageBox::Ok, QMessageBox::Ok);
+      motionProxy->setStiffnesses("Body", 0);
+    }
     delete behaviorProxy;
-    motionProxy->setStiffnesses("Body", 0);
     delete motionProxy;
   }
 }
@@ -80,8 +88,7 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
     motionProxy->setStiffnesses("Body", 1);
 
-    behaviorProxy->runBehavior("standUp");
-    behaviorProxy->runBehavior("Init");
+    behaviorProcessing("Init");
 
     camProxy->setParam(AL::kCameraSelectID, 1); // 0 - horna kamera; 1 - dolna kamera
     clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
@@ -317,6 +324,18 @@ void MainWindow::behaviorProcessing(QListWidgetItem *item)
     QString behaviourName = item->text();
     behaviorThread.setBehaviorProxy(robotIP, robotPort);
     behaviorThread.setSelectedBehavior(behaviourName.toStdString());
+    behaviorThread.start(QThread::HighPriority);
+    std::vector<std::string> runBehavior = behaviorProxy->getRunningBehaviors();
+    if(runBehavior.empty() == true)
+        behaviorThread.quit();
+    //behaviorProxy->runBehavior(behaviourName.toStdString());
+
+}
+
+void MainWindow::behaviorProcessing(std::string selectedMotion)
+{
+    behaviorThread.setBehaviorProxy(robotIP, robotPort);
+    behaviorThread.setSelectedBehavior(selectedMotion);
     behaviorThread.start(QThread::HighPriority);
     std::vector<std::string> runBehavior = behaviorProxy->getRunningBehaviors();
     if(runBehavior.empty() == true)

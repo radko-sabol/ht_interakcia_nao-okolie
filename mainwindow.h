@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QWidget>
 #include <QDebug>
 #include <QTimer>
@@ -62,6 +63,7 @@ private slots:
   void getChoosenObjectIndex(int row);
 
   void behaviorProcessing(QListWidgetItem *item);
+  void behaviorProcessing(std::string selectedMotion);
 
   void on_chooseDetectionComboBox_activated(int index);
 

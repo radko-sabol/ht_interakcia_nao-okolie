@@ -126,6 +126,10 @@ private:
   ObjectDetection objectDetection;
   BehaviorThread behaviorThread;
   Motion motion;
+
+  signals:
+  void getSpeed(QString);
+  void getAngle(QString);
 };
 
 #endif // MAINWINDOW_H

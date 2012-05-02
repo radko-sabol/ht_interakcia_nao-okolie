@@ -88,7 +88,7 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
     motionProxy->setStiffnesses("Body", 1);
 
-    behaviorProcessing("Init");
+    //behaviorProcessing("Init");
 
     camProxy->setParam(AL::kCameraSelectID, 1); // 0 - horna kamera; 1 - dolna kamera
     clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
@@ -105,6 +105,8 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
   connect(ui->foundObjectListWidget,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
   //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
   connect(ui->behaviorsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
+  connect(this,SIGNAL(getSpeed(QString)),ui->speedTextBrowser,SLOT(setText(QString)));
+  connect(this,SIGNAL(getAngle(QString)),ui->angleTextBrowser,SLOT(setText(QString)));
 
   m_timer->start(33);
 }
@@ -469,6 +471,15 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
   std::cout << "theta: " << theta << "; speed: " << speed << std::endl;
   motionProxy->post.setWalkTargetVelocity(speed, 0, theta, 0.5);
+
+  QString Speed;
+  Speed.setNum(speed);
+
+  QString Theta;
+  Theta.setNum(theta);
+
+  emit getSpeed(Speed);
+  emit getAngle(Theta);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)

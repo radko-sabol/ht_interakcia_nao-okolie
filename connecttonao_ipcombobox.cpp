@@ -1,21 +1,34 @@
+/**
+ * @file connecttonao_ipcombobox.cpp
+ *
+ * @author Roman Michna
+ * @author Radko Sabol
+ */
+
 #include "connecttonao_ipcombobox.hpp"
 
+/**
+ * Konstruktor
+ */
 ConnectToNao_IPComboBox::ConnectToNao_IPComboBox(QWidget *parent) : QComboBox(parent)
-{
-}
+{}
 
+/**
+ * Destruktor
+ */
+ConnectToNao_IPComboBox::~ConnectToNao_IPComboBox()
+{}
+
+/**
+ * Event handler zachytavajuci stlacenie klavesy v poli pre vyplnenie IP adresy
+ */
 void ConnectToNao_IPComboBox::keyPressEvent(QKeyEvent* event)
 {
-  // let base class handle the event
   QComboBox::keyPressEvent(event);
 
   if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
   {
-    std::cout << "ENTER" << std::endl;
-    // accept enter/return events so they won't
-    // be ever propagated to the parent dialog..
     emit enterPressed();
     event->accept();
-    //connectToNao.
   }
 }

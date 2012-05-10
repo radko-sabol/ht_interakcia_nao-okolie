@@ -1,18 +1,27 @@
 /**
-* DEV
-*/
+ * @file object_detection.cpp
+ *
+ * @author Radko Sabol
+ */
 
 #include "object_detection.hpp"
 
+/**
+ * Mouse callback funkcia volana pri kliknuti na obraz v detekcii kruhov
+ *
+ * @param int event - event, ktory zavolal callback
+ * @param int x - x-ova suradnica kurzora v case akcie (ktora zavolala callback)
+ * @param int y - y-ova suradnica kurzora v case akcie (ktora zavolala callback)
+ * @param int flags
+ * @param void *param - v tomto pripade to je matica daneho frame-u (cv::Mat)
+ */
 void onMouseClick(int event, int x, int y, int flags, void *param)
 {
   IplImage* image = (IplImage*) param;
-  //std::cout << "x:" << x << "; y:" << y << "; height:" << image->height << "; width:" << image->width << std::endl;
   if (event == CV_EVENT_LBUTTONDOWN)
   {
-    std::cout << "PRESS" << std::endl;
     std::cout << "x:" << x << "; y:" << y << "; height:" << image->height << "; width:" << image->width << std::endl;
-    CvScalar s = cvGet2D(image, y, x);
+    //CvScalar s = cvGet2D(image, y, x);
     //CvScalar s;
     //s = cvGetAt(image, y, x); //row i, column j
     //std::cout << "H:" << s.val[0] << "; S:" << s.val[1] << "; V:" << s.val[2] << std::endl;
@@ -25,24 +34,18 @@ void onMouseClick(int event, int x, int y, int flags, void *param)
   }
   else if (event == CV_EVENT_RBUTTONDOWN)
   {
-    //CvScalar s = cvGet2D(image, x, y);
-    std::cout << "PRESS" << std::endl;
+    std::cout << "x:" << x << "; y:" << y << "; height:" << image->height << "; width:" << image->width << std::endl;
+    //s = cvGetAt(image, y, x); //row i, column j
     //std::cout << "H:" << s.val[0] << "; S:" << s.val[1] << "; V:" << s.val[2] << std::endl;
-    /*
-    std::cout << "H:" << hsv_max_h << "; S:" << hsv_max_s << "; V:" << hsv_max_v << std::endl;
-    hsv_max_h = max(hsv_max_h, s.val[0]);
-    hsv_max_s = max(hsv_max_s, s.val[1]);
-    hsv_max_v = max(hsv_max_v, s.val[2]);
-    */
   }
 }
 
 /**
- * Detekcia kruhov v obraze
+ * Detekcia kruhov v obraze (farby je potrebne nastavovat manualne)
  *
  * @param cv::Mat &img - obraz, v ktorom su detegovane kruhy
  */
-void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastavenie farieb lebo je vela falosnych detekcii
+void ObjectDetection::circleDetectObjects(cv::Mat &img)
 {
   cv::Mat gray, gray2, imageHSV;
   //cvtColor(img, gray, CV_BGR2GRAY);
@@ -57,19 +60,16 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
   //cv::inRange(imageHSV, cv::Scalar(170, 50, 170, 0), cv::Scalar(256, 180, 256, 0), gray2); // prahovanie druhym rozsahom farieb
   //cv::bitwise_or(gray, gray2, gray); // spojenie prahovanych obrazov
 
-  cv::imshow("prahovane", gray);
+  //cv::imshow("prahovane", gray); // debug
 
   // smooth it, otherwise a lot of false circles may be detected
   cv::GaussianBlur(gray, gray, cv::Size(9, 9), 1, 1);
   cv::Canny(gray, gray, 1, 3);
   std::vector<cv::Vec3f> circles;
-  //HoughCircles(gray, circles, CV_HOUGH_GRADIENT,
-  //             2, gray.rows/4, 200, 100 );
 
   cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 2, gray.rows/2, 100, 100, 7, 20);
-  for (size_t i = 0; i < circles.size(); i++)
+  for (size_t i = 0; i < circles.size(); i++) // prechadzanie cez najdene objekty
   {
-
     std::cout << circles[i][2] << std::endl; // radius
     /*
     cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
@@ -81,23 +81,15 @@ void ObjectDetection::circleDetectObjects(cv::Mat &img) // TODO: vyladit nastave
     */
 
     //std::cout << "najdeny kruh" << std::endl;
+    // zapisanie informacii o najdenom kruhu (x, y, polomer)
     m_objects[2].resize(m_objects[2].size()+1);
     m_objects[2][m_objects[2].size()-1].resize(1);
     m_objects[2][m_objects[2].size()-1][0] = cv::Scalar(circles[i][0], circles[i][1], circles[i][2], 0);
   }
 
   //cv::imshow( "circless", img );
-  cv::imshow("po detekcii", gray);
+  //cv::imshow("po detekcii", gray); // debug
 }
-
-
-
-/**
- * Detektor obdlznikovych objektov v obraze
- *
- * Zdroj: http://stackoverflow.com/questions/7731742/square-detection-doesnt-find-squares
- */
-int thresh = 50, N = 2; // karlphillip: decreased N to 2, was 11.
 
 /**
  * Detektor obdlznikovych objektov v obraze - pomocna funkcia
@@ -125,7 +117,7 @@ double ObjectDetection::angle(cv::Point pt1, cv::Point pt2, cv::Point pt0 )
  */
 void ObjectDetection::squareDetectObjects(const cv::Mat &image)
 {
-  /** Deklaracia premennych */
+  int thresh = 50, N = 2; // karlphillip: decreased N to 2, was 11.;
   cv::Mat pyr,
           gray0(image.size(), CV_8U),
           gray;
@@ -208,11 +200,11 @@ void ObjectDetection::squareDetectObjects(const cv::Mat &image)
             maxCosine = MAX(maxCosine, cosine);
           }
 
+          // ulozenie (x, y) suradnice kazdeho rohu obdlznika
           for (unsigned int k = 0; k < approx.size(); k++)
           {
             approxS[k] = cv::Scalar(approx[k].x, approx[k].y, 0, 0);
           }
-          
 
           // if cosines of all angles are small
           // (all angles are ~90 degree) then write quandrange
@@ -221,15 +213,13 @@ void ObjectDetection::squareDetectObjects(const cv::Mat &image)
           { 
             //std::cout << "najdeny stvorec" << std::endl;
             //squares.push_back(approx);
+            // zapisanie najdeneho obdlznika do globalnej premennej (x, y)
             m_objects[3].push_back(approxS);
           }
         }
       }
     }
   }
-  //std::cout << objects.size(); 
-  //objects[0][0][0] = cv::Scalar(1, 2, 3, 4);
-  //std::cout << " ... " << objects.size() << std::endl;
 }
 
 /**
@@ -240,8 +230,8 @@ void ObjectDetection::squareDetectObjects(const cv::Mat &image)
  */
 boolean ObjectDetection::loadHaarObjectDetector(std::string cascadePath)
 {
-    qDebug() << QString(cascadePath.c_str());
-    if (! m_haarCascade.load(cascadePath)) { qDebug() << "Pri nacitani haar kaskad sa vyskytla chyba"; return false; } else { qDebug() << "Haar kaskady uspesne nacitane"; return true; } // C++
+  //qDebug() << QString(cascadePath.c_str());
+  if (! m_haarCascade.load(cascadePath)) { /*qDebug() << "Pri nacitani haar kaskad sa vyskytla chyba";*/ return false; } else { /*qDebug() << "Haar kaskady uspesne nacitane";*/ return true; }
 }
 
 /**
@@ -272,15 +262,19 @@ void ObjectDetection::haarDetectObjects(cv::Mat image)
     m_objects[2][m_objects[2].size()-1].resize(1); // alokacia miesta pre suradnice objektu (zapisuje sa len do prveho prvku, ale potrebujem mat taketo pole aby som vedel pri hladani obdlznikov zapisovat suradnice vsetkcyh rohov (nie je tam 90°, tak musim kazdy bod osobitne))
     m_objects[2][m_objects[2].size()-1][0] = cv::Scalar(foundObjects[i].x+foundObjects[i].width*0.5, foundObjects[i].y+foundObjects[i].height*0.5, foundObjects[i].width/2);
     */
+
+    // zistenie, ci je aktualne najdeny objekt dostatocne vzdialeny od predtym najdenych objektov
     validObject = true;
     center = cv::Point((foundObjects[i].x + (foundObjects[i].width * 0.5)), (foundObjects[i].y + (foundObjects[i].height * 0.5)));
     for (size_t j = 0; j < foundObjectsCenter.size(); j++)
     {
-      if (((abs(foundObjectsCenter[j].x - center.x) < x_treshold) || (abs(foundObjectsCenter[j].y - center.y) < y_treshold)) && (validObject))
+      if ((( (unsigned int)abs(foundObjectsCenter[j].x - center.x) < x_treshold) || ( (unsigned int)abs(foundObjectsCenter[j].y - center.y) < y_treshold)) && (validObject))
       {
         validObject = false;
       }
     }
+
+    // validny objekt ulozim do globalnej premennej (x, y, sirka, vyska)
     if (validObject)
     {
       foundObjectsCenter.push_back(center);
@@ -304,18 +298,16 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
     {
       if (i == 1) // detegovany haar objekt
       {
+        // obdlznik
         cv::rectangle(imageMat, cv::Point(m_objects[i][j][0][0], m_objects[i][j][0][1]), cv::Point(m_objects[i][j][0][0] + m_objects[i][j][0][2], m_objects[i][j][0][1] + m_objects[i][j][0][3]), cv::Scalar(0, 255, 0), 3, 8, 0);
+
+        // stred
+        /*
         cv::Point center(m_objects[i][j][0][0] + m_objects[i][j][0][2]*0.5, m_objects[i][j][0][1] + m_objects[i][j][0][3]*0.5);
         cv::circle(imageMat, center, 1, cv::Scalar(255, 0, 0), 3, 8, 0);
-        //std::cout << "X: " << center.x << " ; Y: " << center.y << std::endl;
-          
-        /*
-	      if ((center.x > 0) && (center.y > 0))
-        {
-          motion.center(center.x, center.y, mp); // TODO: potrebne urobit mp ako globalnu premennu A presunut volanie tejto funkcie na lepsie miesto
-        }
         */
-          
+
+        //std::cout << "X: " << center.x << " ; Y: " << center.y << std::endl;
       }
 
       if (i == 2) // detegovany kruh
@@ -352,8 +344,10 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
         //cv::circle(image, cv::Point(squares[i][1].x, squares[i][1].y), 2, cv::Scalar(255, 0, 0), 1);
         cv::circle(image, cv::Point(squares[i][2].x, squares[i][2].y), 2, cv::Scalar(255, 0, 255), 1);
         */
-        cv::circle(imageMat, cv::Point(x, y), 2, cv::Scalar(0, 255, 0), 1);
+        // stred
+        //cv::circle(imageMat, cv::Point(x, y), 2, cv::Scalar(0, 255, 0), 1);
 
+        // najdeny obdlznikovy objekt
         cv::line(imageMat, cv::Point(p1[0], p1[1]), cv::Point(p2[0], p2[1]), cv::Scalar(255, 0, 0), 2);
         cv::line(imageMat, cv::Point(p2[0], p2[1]), cv::Point(p3[0], p3[1]), cv::Scalar(255, 0, 0), 2);
         cv::line(imageMat, cv::Point(p3[0], p3[1]), cv::Point(p4[0], p4[1]), cv::Scalar(255, 0, 0), 2);
@@ -367,11 +361,14 @@ void ObjectDetection::drawDetectedObjects(cv::Mat &imageMat)
 }
 
 /**
+ * Vrati vektor najdenych objektov podla vybranej metody hladania
  *
+ * @param int index - cislo pozadovanej detekcie (1 - haar, 2 - kruh, 3 - obdlznik)
+ * @return std::vector< std::vector<cv::Scalar> > - vektor najdenych objektov podla danej metody (jeden rozmer oznacuje pocet najdenych objektov a druhy rozmer oznacuje cast daneho objektu (vyuziva sa to pri obdlznikoch, kde kazda dvojica x,y je osobitne))
  */
 std::vector< std::vector<cv::Scalar> > ObjectDetection::getObjects(int index)
 {
-  if ((index < 0) || (index > m_objects.size()-1))
+  if ((index < 0) || ((size_t)index > m_objects.size()-1))
   {
     return m_objects[0];
   }

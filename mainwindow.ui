@@ -6,12 +6,28 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>825</width>
-    <height>529</height>
+    <width>773</width>
+    <height>476</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>773</width>
+    <height>476</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>773</width>
+    <height>476</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Nao - environment interaction</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>C:/Users/Radko Sabol/Desktop/nao_logo.png</normaloff>C:/Users/Radko Sabol/Desktop/nao_logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="Label" name="videoStreamLabel">
@@ -456,7 +472,7 @@
      <rect>
       <x>50</x>
       <y>30</y>
-      <width>141</width>
+      <width>151</width>
       <height>23</height>
      </rect>
     </property>
@@ -468,9 +484,9 @@
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>60</y>
-      <width>141</width>
-      <height>240</height>
+      <y>80</y>
+      <width>151</width>
+      <height>220</height>
      </rect>
     </property>
    </widget>
@@ -478,20 +494,23 @@
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>340</y>
+      <y>350</y>
       <width>491</width>
-      <height>121</height>
+      <height>111</height>
      </rect>
     </property>
    </widget>
    <widget class="QListWidget" name="behaviorsListWidget">
     <property name="geometry">
      <rect>
-      <x>570</x>
-      <y>60</y>
+      <x>560</x>
+      <y>80</y>
       <width>151</width>
-      <height>240</height>
+      <height>220</height>
      </rect>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
    <widget class="QComboBox" name="chooseDetectionComboBox">
@@ -513,14 +532,20 @@
    <widget class="QLabel" name="listOfAvailableBehaviorsLabel">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>40</y>
-      <width>124</width>
+      <x>560</x>
+      <y>60</y>
+      <width>151</width>
       <height>13</height>
      </rect>
     </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
     <property name="text">
      <string>List of available behaviors</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="typeOfObjectDetectionLabel">
@@ -539,47 +564,119 @@
    <widget class="QTextBrowser" name="speedTextBrowser">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>300</y>
+      <x>270</x>
+      <y>305</y>
       <width>71</width>
-      <height>31</height>
+      <height>20</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
    <widget class="QTextBrowser" name="angleTextBrowser">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>300</y>
-      <width>81</width>
-      <height>31</height>
+      <x>455</x>
+      <y>305</y>
+      <width>71</width>
+      <height>20</height>
      </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>16777215</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>310</y>
-      <width>46</width>
-      <height>13</height>
+      <x>235</x>
+      <y>307</y>
+      <width>31</width>
+      <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>SPEED</string>
+     <string>Speed</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>420</x>
-      <y>310</y>
-      <width>46</width>
+      <y>307</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Angle</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="stiffnessToggleButton">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>30</y>
+      <width>151</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Turn ON body stiffness</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="listOfAvailableBehaviorsLabel_2">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>330</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Found objects</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="listOfAvailableBehaviorsLabel_3">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>60</y>
+      <width>151</width>
       <height>13</height>
      </rect>
     </property>
     <property name="text">
-     <string>ANGLE</string>
+     <string>List of available haar cascades</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>

@@ -14,14 +14,13 @@ class ConnectToNao_IPComboBox : public QComboBox
 
 public:
   explicit ConnectToNao_IPComboBox(QWidget *parent = 0);
+  ~ConnectToNao_IPComboBox();
 
 protected:
   void keyPressEvent(QKeyEvent *event);
 
 signals:
-    void enterPressed();
-
-private:
+  void enterPressed();
 };
 
 #endif // CONNECTTONAO_IPCOMBOBOX_HPP

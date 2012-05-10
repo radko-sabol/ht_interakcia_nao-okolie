@@ -13,8 +13,6 @@ public:
   void stopWalking(AL::ALMotionProxy &mp);
 
 private:
-
-
   void funkciaPrislusnosti(float *hodnoty, float hodnota);
   void funkciaDaleko(float *hodnoty, float hodnota);
   void funkciaStredne(float *hodnoty, float hodnota);

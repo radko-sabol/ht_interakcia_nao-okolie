@@ -1,10 +1,17 @@
+/**
+ * @file motion.cpp
+ *
+ * @author Peter Brudnak
+ * @author Roman Michna
+ */
+
 #include "motion.hpp"
 
 /**
- *Centrovanie hlavy k sledovanemu objektu
+ * Centrovanie hlavy k sledovanemu objektu
  * 
- * @param int x - x_ova suradnica objektu v obraze
- * @param int y - y_ova suradnica objektu v obraze
+ * @param int x - x-ova suradnica objektu v obraze
+ * @param int y - y-ova suradnica objektu v obraze
  * @param AL::ALMotionProxy& mp - Nao motion proxy 
  */
 void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
@@ -27,47 +34,53 @@ void Motion::headCenter(int x, int y, AL::ALMotionProxy &mp)
   funkciaPrislusnosti(mnozina_y, nchange_y);
 
   float change_x = (float)(vyhodnoteniePravidiel(mnozina_x) * 0.1); // change in radian
-  float change_y = (float)(vyhodnoteniePravidiel(mnozina_y) * 0.1); // pretypovavam lebo: motion.cpp:32: warning: C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-
-
+  float change_y = (float)(vyhodnoteniePravidiel(mnozina_y) * 0.1);
 
   //std::cout << " vzdialenost: " << distance << std::endl;
-  if (x < 160) { mp.changeAngles("HeadYaw", change_x, 0.05); }
-  else         { mp.changeAngles("HeadYaw", -change_x, 0.05); }
+  if (x < 160) { mp.changeAngles("HeadYaw", change_x, 0.05f); }
+  else         { mp.changeAngles("HeadYaw", -change_x, 0.05f); }
 
-  if (y < 120) { mp.changeAngles("HeadPitch", -change_y,0.05); }
-  else         { mp.changeAngles("HeadPitch", change_y,0.05); }
-
-
+  if (y < 120) { mp.changeAngles("HeadPitch", -change_y, 0.05f); }
+  else         { mp.changeAngles("HeadPitch", change_y, 0.05f); }
 }
 
+/**
+ * Chodza na zaklade otocenia hlavy (robot centruje objekt do stredu obrazu a podla toho sa nastavuje chodza cez fuzzy regulator)
+ *
+ * @param AL::ALMotionProxy& mp - Nao motion proxy
+ */
 void Motion::walkToObject(AL::ALMotionProxy &mp)
 {
-     float b=0;
-     float theta=0;
-     float frequency=0.5;
-     double distance; // potrebne ku chodzi
-     std::vector<float> position_x = mp.getAngles("HeadYaw", true);	//useSensors – If true, sensor angles will be returned
-     std::vector<float> position_y = mp.getAngles("HeadPitch", true);
-     for (unsigned int i = 0; i < position_y.size(); i++)
-     {
-         distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
-     }
+  float b = 0,
+        theta = 0,
+        frequency = 0.5;
+  double distance; // potrebne ku chodzi
+  std::vector<float> position_x = mp.getAngles("HeadYaw", true); //useSensors – If true, sensor angles will be returned
+  std::vector<float> position_y = mp.getAngles("HeadPitch", true);
+  for (unsigned int i = 0; i < position_y.size(); i++)
+  {
+    distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
+  }
 
-      // chodza
-      float ndistance = (float)(distance * 2 - 0.6f);
-      float mnozina_d[3];
-      funkciaPrislusnosti(mnozina_d,ndistance);
-      float a = vyhodnoteniePravidiel(mnozina_d);
-      theta = position_x[0]/4;				//maximalna zmena 2
-      if (distance > 0.31)
-      {
-         std::cout << "velkost kroku: " << a <<"theta: " <<theta <<std::endl;
-         mp.post.setWalkTargetVelocity(a, b, theta, frequency);
-      }
-      else { mp.post.setWalkTargetVelocity(0, 0, 0, 0); }
+  // chodza
+  float ndistance = (float)(distance * 2 - 0.6f);
+  float mnozina_d[3];
+  funkciaPrislusnosti(mnozina_d, ndistance);
+  float a = vyhodnoteniePravidiel(mnozina_d);
+  theta = position_x[0]/4; //maximalna zmena 2
+  if (distance > 0.31)
+  {
+    //std::cout << "velkost kroku: " << a <<"theta: " <<theta <<std::endl;
+    mp.post.setWalkTargetVelocity(a, b, theta, frequency);
+  }
+  else { mp.post.setWalkTargetVelocity(0, 0, 0, 0); }
 }
 
+/**
+ * Zastavenie chodze
+ *
+ * @param AL::ALMotionProxy& mp - Nao motion proxy
+ */
 void Motion::stopWalking(AL::ALMotionProxy &mp)
 {
   mp.post.setWalkTargetVelocity(0, 0, 0, 0);
@@ -81,9 +94,9 @@ void Motion::stopWalking(AL::ALMotionProxy &mp)
  */
 void Motion::funkciaPrislusnosti(float *hodnoty, float hodnota)
 {
-    funkciaBlizko(hodnoty,hodnota);
-    funkciaStredne(hodnoty,hodnota);
-    funkciaDaleko(hodnoty,hodnota);
+  funkciaBlizko(hodnoty,hodnota);
+  funkciaStredne(hodnoty,hodnota);
+  funkciaDaleko(hodnoty,hodnota);
 }
 
 /**
@@ -94,7 +107,7 @@ void Motion::funkciaPrislusnosti(float *hodnoty, float hodnota)
  */
 void Motion::funkciaDaleko(float *hodnoty,float hodnota)
 {
-    hodnoty[0]=(1-2*hodnota);
+  hodnoty[0] = (1 - 2 * hodnota);
 }
 
 /**
@@ -105,8 +118,8 @@ void Motion::funkciaDaleko(float *hodnoty,float hodnota)
  */
 void Motion::funkciaStredne(float *hodnoty,float hodnota)
 {
-    if (hodnota < 0.5) { hodnoty[1] = (2 * hodnota); }
-    else               { hodnoty[1] = (2 - 2 * hodnota); }
+  if (hodnota < 0.5) { hodnoty[1] = (2 * hodnota); }
+  else               { hodnoty[1] = (2 - 2 * hodnota); }
 }
 
 /**
@@ -117,7 +130,7 @@ void Motion::funkciaStredne(float *hodnoty,float hodnota)
  */
 void Motion::funkciaBlizko(float *hodnoty,float hodnota)
 {
-    hodnoty[2] = (2 * hodnota - 1);
+  hodnoty[2] = (2 * hodnota - 1);
 }
 
 /**

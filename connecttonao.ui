@@ -31,6 +31,10 @@
   <property name="windowTitle">
    <string>Connect to Nao</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>C:/Users/Radko Sabol/Desktop/nao_logo.png</normaloff>C:/Users/Radko Sabol/Desktop/nao_logo.png</iconset>
+  </property>
   <widget class="QLabel" name="robotIP">
    <property name="geometry">
     <rect>

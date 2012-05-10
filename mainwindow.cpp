@@ -1,3 +1,11 @@
+/**
+ * @file mainwindow.cpp
+ *
+ * @author Roman Michna
+ * @author Radko Sabol
+ * @author Peter Brudnak
+ */
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -22,9 +30,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
   m_timer = new QTimer();
   m_haarCascadeLoaded = false;
-  m_brokerConnection = false;
+  m_isBrokerConnection = false;
   m_selectedDetection = none;
-  choosenObjectIndex = -1;
   captureRobotCam = 0;
   speed = theta = 0;
 }
@@ -37,7 +44,7 @@ MainWindow::~MainWindow()
   delete ui;
   delete m_timer;
 
-  if (m_brokerConnection) // kontrola, ci som bol pripojeny na robota
+  if (m_isBrokerConnection) // kontrola, ci som pripojeny na robota
   {
     delete textToSpeech;
     camProxy->unsubscribe(clientName);
@@ -47,9 +54,14 @@ MainWindow::~MainWindow()
       behaviorProxy->runBehavior("sitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
       motionProxy->setStiffnesses("Body", 0);
     }
+    else if ((behaviorProxy->isBehaviorInstalled("SitDown")))
+    {
+      behaviorProxy->runBehavior("SitDown"); // predtym to bolo mimo podmienky a sposobovalo to "Assertion failed" pri zatvoreni okna s nastavenim IP adresy a portu
+      motionProxy->setStiffnesses("Body", 0);
+    }
     else
     {
-      QMessageBox::warning(this, "Missing behavior", "The behavior \"sitDown\" is missing.\nStiffness will be turned off - hold the robot.", QMessageBox::Ok, QMessageBox::Ok);
+      QMessageBox::warning(this, "Missing behavior", "The behavior \"sitDown\" or \"SitDown\" is missing.\nStiffness will be turned off - hold the robot.", QMessageBox::Ok, QMessageBox::Ok);
       motionProxy->setStiffnesses("Body", 0);
     }
     delete behaviorProxy;
@@ -58,25 +70,35 @@ MainWindow::~MainWindow()
 }
 
 /**
- * Pripojenie na hardware robota, ktoreho NaoQi bezi na danej IP adrese a porte
+ * Pripojenie na robota, ktoreho NaoQi bezi na danej IP adrese a porte (v pripade localhost adresy sa program pripoji na kameru v pocitaci)
  *
  * @param QString &IP - IP adresa robota
  * @param QString &port - port
  */
-void MainWindow::getIpAndPort(QString &IP, QString &port)
+int MainWindow::getIpAndPort(QString &IP, QString &port)
 {
   robotIP = IP.toStdString();
   robotPort = port.toInt();
 
   if (robotIP == "127.0.0.1") // pripajam sa na lokalnu kameru v PC
   {
-    m_brokerConnection = false; // nastavenie flagu informujuceho, ze sa nepripajam na robota
+    m_isBrokerConnection = false; // nastavenie flagu informujuceho, ze sa nepripajam na robota
     cap.open(0);
-    if (! cap.isOpened()) { /*return -1;*/ }
+    if (! cap.isOpened()) // pripojenie na kameru v PC sa nepodarilo
+    {
+      QMessageBox::critical(this, "Camera connection problem", "Connection to camera failed", QMessageBox::Ok, QMessageBox::Ok);
+      this->close();
+      return -1;
+    }
+
+    // zablokovanie tlacidiel, ktore su pri pripojeni na kameru nepotrebne
+    ui->stiffnessToggleButton->setEnabled(false);
+    ui->speedTextBrowser->setEnabled(false);
+    ui->angleTextBrowser->setEnabled(false);
   }
   else
   {
-    m_brokerConnection = true; // nastavenie flagu informujuceho, ze sa pripajam na robota
+    m_isBrokerConnection = true; // nastavenie flagu informujuceho, ze sa pripajam na robota
 
     qDebug() << "IP: " << IP << ", port: " << port;
     textToSpeech = new AL::ALTextToSpeechProxy(robotIP, robotPort);
@@ -88,27 +110,31 @@ void MainWindow::getIpAndPort(QString &IP, QString &port)
 
     motionProxy->setStiffnesses("Body", 1);
 
-    //behaviorProcessing("Init");
+    behaviorProcessing("standUp"); // spustenie behavioru "standUp" cez vlakno
 
     camProxy->setParam(AL::kCameraSelectID, 1); // 0 - horna kamera; 1 - dolna kamera
-    clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30);
+    clientName = camProxy->subscribe("getImages", AL::kQVGA, AL::kBGRColorSpace, 30); // pripojenie na kameru robota
 
+    // nacitanie, vypisanie a zoradenie nainstalovanych spravani v robotovi (podla abecedy)
     behaviourNames = behaviorProxy->getInstalledBehaviors();
-
     for (unsigned int i = 0; i < behaviourNames.size(); i++) { ui->behaviorsListWidget->addItem(QString(behaviourNames[i].c_str())); }
+    ui->behaviorsListWidget->setSortingEnabled(true);
+    ui->behaviorsListWidget->sortItems(Qt::AscendingOrder);
 
     imageMain = cvCreateImage(cvSize(320, 240), 8, 3);
+
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(setStiffnessToggleButtonText()));
+    connect(ui->behaviorsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
+    connect(this,SIGNAL(getSpeed(QString)),ui->speedTextBrowser,SLOT(setText(QString)));
+    connect(this,SIGNAL(getAngle(QString)),ui->angleTextBrowser,SLOT(setText(QString)));
   }
 
   connect(m_timer, SIGNAL(timeout()), this, SLOT(imageProcessing()));
   connect(ui->loadHaarCascadeButton, SIGNAL(clicked()), this, SLOT(templateProcessing()));
-  connect(ui->foundObjectListWidget,SIGNAL(currentRowChanged(int)),this,SLOT(getChoosenObjectIndex(int)));
-  //connect(ui->listWidget_2,SIGNAL(itemSelectionChanged()),this,SLOT(motionProcessing()));
-  connect(ui->behaviorsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(behaviorProcessing(QListWidgetItem*)));
-  connect(this,SIGNAL(getSpeed(QString)),ui->speedTextBrowser,SLOT(setText(QString)));
-  connect(this,SIGNAL(getAngle(QString)),ui->angleTextBrowser,SLOT(setText(QString)));
 
   m_timer->start(33);
+
+  return 0;
 }
 
 /**
@@ -136,30 +162,33 @@ void MainWindow::imageProcessing()
   }
 
   // vycentrovanie hlavy na stred objektu ak robot vidi len jeden objekt (zatial len testovanie na haar detekcii)
-  if (detectedObjects.size() == 1)
+  if (m_isBrokerConnection)
   {
-    if (m_selectedDetection == haarDetection) // haar
+    if (detectedObjects.size() == 1)
     {
-      int x = (detectedObjects[0][0][0] + (detectedObjects[0][0][2] * 0.5)),
-          y = (detectedObjects[0][0][1] + (detectedObjects[0][0][3] * 0.5));
-      motion.headCenter(x, y, *motionProxy);
-      motion.walkToObject(*motionProxy);
-      //detectedObjects[0][0][0] // x
-      //detectedObjects[0][0][1] // y
-      //detectedObjects[0][0][2] // width
-      //detectedObjects[0][0][3] // height
+      if (m_selectedDetection == haarDetection) // haar
+      {
+        int x = (detectedObjects[0][0][0] + (detectedObjects[0][0][2] * 0.5)),
+            y = (detectedObjects[0][0][1] + (detectedObjects[0][0][3] * 0.5));
+        motion.headCenter(x, y, *motionProxy);
+        motion.walkToObject(*motionProxy);
+        //detectedObjects[0][0][0] // x
+        //detectedObjects[0][0][1] // y
+        //detectedObjects[0][0][2] // width
+        //detectedObjects[0][0][3] // height
+      }
+      else if (m_selectedDetection == circleDetection) // circle
+      {
+        int x = (detectedObjects[0][0][0]),
+            y = (detectedObjects[0][0][1]);
+        motion.headCenter(x, y, *motionProxy);
+        motion.walkToObject(*motionProxy);
+      }
     }
-    else if (m_selectedDetection == circleDetection) // circle
+    else if ((detectedObjects.size() == 0) && (m_selectedDetection != none))
     {
-      int x = (detectedObjects[0][0][0]),
-          y = (detectedObjects[0][0][1]);
-      motion.headCenter(x, y, *motionProxy);
-      motion.walkToObject(*motionProxy);
+      motion.stopWalking(*motionProxy);
     }
-  }
-  else if (detectedObjects.size() == 0)
-  {
-    motion.stopWalking(*motionProxy);
   }
 
   //std::cout << "[" << m_selectedDetection << "] najdenych objektov: " << (detectedObjects.size()) << std::endl;
@@ -173,7 +202,7 @@ void MainWindow::imageProcessing()
  */
 void MainWindow::getImage()
 {
-  if (m_brokerConnection) // kontrola, ci som pripojeny na robota
+  if (m_isBrokerConnection) // kontrola, ci som pripojeny na robota
   {
     captureRobotCam = camProxy->getImageRemote(clientName);
     cvSetData(imageMain, (char*)captureRobotCam[6].GetBinary(), 960);
@@ -189,7 +218,7 @@ void MainWindow::getImage()
 }
 
 /**
- * Vykreslenie obrazu do gui (z premennej imageMat)
+ * Vykreslenie obrazu do GUI (z premennej imageMat)
  */
 void MainWindow::showImage()
 {
@@ -230,45 +259,30 @@ void MainWindow::markObjectsInImage()
   objectDetection.drawDetectedObjects(imageMat);
 }
 
-/*
-void MainWindow::drawTemplate()
-{
-  ui->listWidget_2->clear();
-
-  objectDetection.clearObjects();
-  objectDetection.haarDetectObjects(imageMat);
-  objectDetection.drawDetectedObjects(imageMat);
-
-  QImage img = QImage((const unsigned char*)(imageMat.data), imageMat.cols,imageMat.rows, QImage::Format_RGB888);
-  ui->label->setPixmap(QPixmap::fromImage(img));
-  ui->label->resize(ui->label->pixmap()->size());
-}
-*/
-
 /**
- *
+ * Nacitanie konfiguracneho suboru s haar kaskadami (.xml subory), vypisanie nacitanych hodnot (z konfiguracneho suboru) do listWidgetu a pripojenie signalu, ktory spusti funkciu nacitania .xml suboru po kliknuti na hodnotu listWidgetu
  */
-void MainWindow::templateProcessing() // TODO: mne osobne tento nazov funkcie na prvy pohlad nehovori nic
+void MainWindow::templateProcessing()
 {
-  getXML();
+  getConfig();
   showTemplates();
   connect(ui->haarCascadesListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(getItem(int)));
 }
 
 /**
- *
+ * Nacitanie konfiguracneho suboru so zoznamom .xml suborov (haar kaskady)
  */
-void MainWindow::getXML()
+void MainWindow::getConfig()
 {
   ui->haarCascadesListWidget->clear();
 
   XMLName.clear();
   XMLPath.clear();
 
-  fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), ".", tr("Image Files (*.rnns)"));
+  m_fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), ".", tr("Image Files (*.rnns)"));
 
 
-  RNNSFile.setFileName(fileName);
+  RNNSFile.setFileName(m_fileName);
 
   RNNSFile.open(QIODevice::ReadOnly | QIODevice::Text);
 
@@ -276,14 +290,14 @@ void MainWindow::getXML()
 
   std::vector<QString> line;
 
-  while (!in.atEnd())
+  while (! in.atEnd())
   {
-      line.push_back(in.readLine());
+    line.push_back(in.readLine());
   }
 
-  for(unsigned int i = 0; i < line.size(); i++)
+  for (unsigned int i = 0; i < line.size(); i++)
   {
-    if((i % 2) == 0)
+    if ((i % 2) == 0)
     {
       XMLName.push_back(line[i]);
     }
@@ -295,7 +309,7 @@ void MainWindow::getXML()
 }
 
 /**
- *
+ * Vypisanie zoznamu nacitanych .xml suborov z konfiguracneho suboru do listWidgetu (ui->haarCascadesListWidget)
  */
 void MainWindow::showTemplates()
 {
@@ -303,34 +317,33 @@ void MainWindow::showTemplates()
   {
     ui->haarCascadesListWidget->addItem(XMLName[i]);
   }
+  ui->haarCascadesListWidget->setSortingEnabled(true);
+  ui->haarCascadesListWidget->sortItems(Qt::AscendingOrder);
 }
 
 /**
- * Nacitanie haar kaskad
+ * Nacitanie Haar kaskad
+ *
+ * @param int row - index prvku, ktory oznacuje dany .xml, ktory sa nacita
  */
 void MainWindow::getItem(int row)
 {
   std::string cesticka = XMLPath[row].toStdString();
-  std::cout << cesticka << std::endl;
+  //std::cout << cesticka << std::endl;
 
   if (cesticka.size() > 0)
   {
     m_haarCascadeLoaded = objectDetection.loadHaarObjectDetector(cesticka);
-    //templateStatus = true;
+    // zistenie, ci bola kaskada uspesne nacitana (.xml subor)
+    if (! m_haarCascadeLoaded) { QMessageBox::critical(this, "Haar cascade loading failed", "Haar cascade wasn't loaded properly.\nPlease, check the path to the Haar cascade in your config file.\n\nPath to haar cascade:\n " + QString::fromUtf8(cesticka.c_str()) + ".\n\nPath to config file: \n" + m_fileName + ".", QMessageBox::Ok, QMessageBox::Ok); }
   }
   else { m_haarCascadeLoaded = false; }
 }
 
 /**
+ * Spustenie behavior v threade
  *
- */
-void MainWindow::motionProcessing()
-{
-  //headCenter();
-}
-
-/**
- *
+ * @param QListWidgetItem *item - prvok v listWidgetu (behavior)
  */
 void MainWindow::behaviorProcessing(QListWidgetItem *item)
 {
@@ -339,151 +352,136 @@ void MainWindow::behaviorProcessing(QListWidgetItem *item)
     behaviorThread.setSelectedBehavior(behaviourName.toStdString());
     behaviorThread.start(QThread::HighPriority);
     std::vector<std::string> runBehavior = behaviorProxy->getRunningBehaviors();
-    if(runBehavior.empty() == true)
-        behaviorThread.quit();
-    //behaviorProxy->runBehavior(behaviourName.toStdString());
-
+    if (runBehavior.empty()) { behaviorThread.quit(); }
 }
 
+/**
+ * Spustenie behavior v threade
+ *
+ * @param std::string selectedMotion - nazov behavioru
+ */
 void MainWindow::behaviorProcessing(std::string selectedMotion)
 {
     behaviorThread.setBehaviorProxy(robotIP, robotPort);
     behaviorThread.setSelectedBehavior(selectedMotion);
     behaviorThread.start(QThread::HighPriority);
     std::vector<std::string> runBehavior = behaviorProxy->getRunningBehaviors();
-    if(runBehavior.empty() == true)
-        behaviorThread.quit();
-    //behaviorProxy->runBehavior(behaviourName.toStdString());
-
+    if (runBehavior.empty()) { behaviorThread.quit(); }
 }
 
 /**
  * Event handler zachytavajuci zmenu hodnoty v combo boxe
  *
- * @paramt int index - index zvolenej detekcie
+ * @param int index - index zvolenej detekcie
  */
 void MainWindow::on_chooseDetectionComboBox_activated(int index)
 {
-  qDebug() << index;
+  //qDebug() << index;
   m_selectedDetection = index;
 }
 
-/*
-void MainWindow::headCenter(double x, double y)
+/**
+ * Event handler zachytavajuci stlacenie tlacidla na prepnutie stiffness na Naovi
+ */
+void MainWindow::on_stiffnessToggleButton_clicked()
 {
-    double nchange_x = 0;
-    double nchange_y = 0;
-    double mnozina_x[3];
-    double mnozina_y[3];
+  std::vector<float> stiffnesses = motionProxy->getStiffnesses("Body");
+  bool weakStifness = false;
 
-    if(x < 160)
-         nchange_x = (160 - x) / 160;
-    else nchange_x = (x - 160) / 160;
+  //std::cout << "stiffnesses: " << stiffnesses << std::endl;
+  for (unsigned int i = 0; i < stiffnesses.size(); i++)
+  {
+    if ((stiffnesses[i] < 1) && (! weakStifness)) { weakStifness = true; }
+  }
 
-    if(y < 120)
-         nchange_y = (120 - y) / 120;
-    else nchange_y = (y - 120) / 120;
-
-    funkciaPrislusnosti(mnozina_x, nchange_x);
-    funkciaPrislusnosti(mnozina_y, nchange_y);
-
-    double change_x=vyhodnoteniePravidiel(mnozina_x) * 0.1; //change in gradian
-    double change_y=vyhodnoteniePravidiel(mnozina_y) * 0.1;
-
-    double distance;
-
-    std::vector<float> position_y = motionProxy->getAngles("HeadPitch",true);
-
-    distance = (pow(1.0+tan(position_y[0]),-1) * 0.465);
-
-    if(x < 160)
-    {
-         motionProxy->changeAngles("HeadYaw", change_x, 0.05f);
-    }
-    else
-    {
-         motionProxy->changeAngles("HeadYaw", -change_x, 0.05f);
-    }
-    if(y < 120)
-        motionProxy->changeAngles("HeadPitch", -change_y,0.05f);
-    else motionProxy->changeAngles("HeadPitch", change_y,0.05f);
-}
-*/
-
-void MainWindow::getChoosenObjectIndex(int row)
-{
-    if(row >= 0)
-        choosenObjectIndex = row;
-    qDebug() << choosenObjectIndex;
+  if (weakStifness) { motionProxy->setStiffnesses("Body", 1); }
+  else              { motionProxy->setStiffnesses("Body", 0); }
 }
 
 /**
- * Ovladanie pohybu robota Nao pomocou sipiek (hlava) a klaves WASD (chodza)
+ * Funkcia obsluhujuca nastavenie textu do buttonu na prepinanie stiffness na Naovi (ON/OFF)
+ */
+void MainWindow::setStiffnessToggleButtonText()
+{
+  std::vector<float> stiffnesses = motionProxy->getStiffnesses("Body");
+  bool weakStifness = false;
+
+  for (unsigned int i = 0; i < stiffnesses.size(); i++)
+  {
+    if ((stiffnesses[i] < 1) && (! weakStifness)) { weakStifness = true; }
+  }
+
+  if (weakStifness) { ui->stiffnessToggleButton->setText("Turn ON body stiffness"); }
+  else              { ui->stiffnessToggleButton->setText("Turn OFF body stiffness"); }
+}
+
+/**
+ * Ovladanie pohybu robota Nao pomocou sipiek (hlava) a klaves WASDQ (chodza)
  *
- * @param QKeyEvent *event - TODO
+ * @param QKeyEvent *event - event obsahujuci, ze ktora klavesa bola stlacena
  */
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-  setFocus();
-  qDebug() << event->key();
-
-  //hlava
-
-  switch (event->key())
+  // zaokruhlovanie - zdroj: http://stackoverflow.com/questions/1343890/rounding-number-to-2-decimal-places-in-c
+  if (m_isBrokerConnection)
   {
-    case Qt::Key_Up:
-      motionProxy->post.changeAngles("HeadPitch", -0.1, 0.05);
-      break;
+    //setFocus();
+    //qDebug() << event->key();
 
-    case Qt::Key_Down:
-      motionProxy->post.changeAngles("HeadPitch", 0.1, 0.05);
-      break;
+    switch (event->key())
+    {
+      case Qt::Key_Up: // pohyb hlavou hore
+        motionProxy->post.changeAngles("HeadPitch", -0.1f, 0.05f);
+        break;
 
-    case Qt::Key_Left:
-      motionProxy->post.changeAngles("HeadYaw", 0.1, 0.05);
-      break;
+      case Qt::Key_Down: // pohyb hlavou dole
+        motionProxy->post.changeAngles("HeadPitch", 0.1f, 0.05f);
+        break;
 
-    case Qt::Key_Right:
-      motionProxy->post.changeAngles("HeadYaw", -0.1, 0.05);
-      break;
+      case Qt::Key_Left: // pohyb hlavou dolava
+        motionProxy->post.changeAngles("HeadYaw", 0.1f, 0.05f);
+        break;
 
-    case Qt::Key_Q:
-      speed = 0;
-      theta = 0;
-      break;
+      case Qt::Key_Right: // pohyb hlavou doprava
+        motionProxy->post.changeAngles("HeadYaw", -0.1f, 0.05f);
+        break;
 
-    case Qt::Key_W:
-      if (speed < 1) { speed += 0.05; }
-      break;
+      case Qt::Key_Q: // zastavenie
+        speed = 0;
+        theta = 0;
+        break;
 
-    case Qt::Key_S:
-      if (speed >- 1) { speed -= 0.05; }
-      break;
+      case Qt::Key_W: // pohyb dopredu
+        if (speed < 1) { speed += 0.05f; }
+        speed = floorf(speed * 100 + 0.5) / 100;
+        break;
 
-    case Qt::Key_A:
-      if (theta < 1) { theta += 0.05; }
-      break;
+      case Qt::Key_S: // pohyb dozadu
+        if (speed > -1) { speed -= 0.05f; }
+        speed = floorf(speed * 100 + 0.5) / 100;
+        break;
 
-    case Qt::Key_D:
-      if (theta >- 1) { theta -= 0.05; }
-      break;
+      case Qt::Key_A: // pohyb dolava
+        if (theta < 1) { theta += 0.05f; }
+        theta = floorf(theta * 100 + 0.5) / 100;
+        break;
+
+      case Qt::Key_D: // pohyb doprava
+        if (theta > -1) { theta -= 0.05f; }
+        theta = floorf(theta * 100 + 0.5) / 100;
+        break;
+    }
+
+    //std::cout << "theta: " << theta << "; speed: " << speed << std::endl;
+    motionProxy->post.setWalkTargetVelocity(speed, 0, theta, 1);
+
+    QString Speed;
+    Speed.setNum(speed);
+
+    QString Theta;
+    Theta.setNum(theta);
+
+    emit getSpeed(Speed);
+    emit getAngle(Theta);
   }
-
-  std::cout << "theta: " << theta << "; speed: " << speed << std::endl;
-  motionProxy->post.setWalkTargetVelocity(speed, 0, theta, 0.5);
-
-  QString Speed;
-  Speed.setNum(speed);
-
-  QString Theta;
-  Theta.setNum(theta);
-
-  emit getSpeed(Speed);
-  emit getAngle(Theta);
-}
-
-void MainWindow::mousePressEvent(QMouseEvent *event)
-{
-    if (event->button() == Qt::RightButton)
-        choosenObjectIndex = -1;
 }

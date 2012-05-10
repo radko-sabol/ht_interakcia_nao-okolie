@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #include <QMainWindow>
 #include <QMessageBox>
@@ -47,25 +48,26 @@ class MainWindow : public QMainWindow
     
 public:
   explicit MainWindow(QWidget *parent = 0);
-  void getIpAndPort(QString& IP, QString& port);
+  int getIpAndPort(QString& IP, QString& port);
   ~MainWindow();
 
 protected:
   void keyPressEvent(QKeyEvent *event);
-  void mousePressEvent(QMouseEvent *event);
 
 private slots:
   void imageProcessing();
   void templateProcessing();
-  void motionProcessing();
 
   void getItem(int row);
-  void getChoosenObjectIndex(int row);
 
   void behaviorProcessing(QListWidgetItem *item);
   void behaviorProcessing(std::string selectedMotion);
 
   void on_chooseDetectionComboBox_activated(int index);
+
+  void on_stiffnessToggleButton_clicked();
+
+  void setStiffnessToggleButtonText();
 
 private:
   void getImage();
@@ -76,7 +78,7 @@ private:
 
   void drawTemplate();
 
-  void getXML();
+  void getConfig();
   void showTemplates();
 
   Ui::MainWindow *ui;
@@ -86,7 +88,7 @@ private:
   std::string clientName;
   IplImage* imageMain;
   QTimer *m_timer;
-  QString fileName;
+  QString m_fileName;
   QFile RNNSFile;
   std::vector<QString> XMLName;
   std::vector<QString> XMLPath;
@@ -97,7 +99,6 @@ private:
   CvMemStorage* storage;
 
   int totalObjects;
-  int choosenObjectIndex;
 
   AL::ALTextToSpeechProxy *textToSpeech;
   AL::ALVideoDeviceProxy *camProxy;
@@ -112,7 +113,7 @@ private:
   float speed, theta;
 
   bool m_haarCascadeLoaded;
-  bool m_brokerConnection;
+  bool m_isBrokerConnection;
   short int m_selectedDetection;
 
   enum detections
